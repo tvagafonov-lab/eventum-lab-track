@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Eventum Lab — Signal Track Record</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0f0f0f; color: #e0e0e0; padding: 20px; }
+    h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 4px; }
+    .subtitle { color: #888; font-size: 0.85rem; margin-bottom: 24px; }
+    .cards { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+    .card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 16px; min-width: 160px; }
+    .card h3 { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .card .val { font-size: 1.6rem; font-weight: 700; }
+    .card .val.green { color: #4caf50; }
+    .card .val.red { color: #f44336; }
+    .card .val.neutral { color: #e0e0e0; }
+    .chart-wrap { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+    .chart-wrap h2 { font-size: 0.9rem; color: #888; margin-bottom: 16px; }
+    .filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .filters select, .filters input { background: #1a1a1a; border: 1px solid #333; color: #e0e0e0; padding: 6px 10px; border-radius: 4px; font-size: 0.85rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { text-align: left; padding: 8px 12px; color: #888; font-weight: 500; border-bottom: 1px solid #2a2a2a; }
+    td { padding: 8px 12px; border-bottom: 1px solid #1e1e1e; }
+    tr:hover td { background: #1e1e1e; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+    .badge.win { background: #1b3a1b; color: #4caf50; }
+    .badge.loss { background: #3a1b1b; color: #f44336; }
+    .badge.flat { background: #2a2a2a; color: #aaa; }
+    .badge.open { background: #1a2a3a; color: #90caf9; }
+    .badge.long { background: #1b2a1b; color: #81c784; }
+    .badge.short { background: #3a1a1a; color: #ef9a9a; }
+    a { color: #90caf9; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .updated { color: #555; font-size: 0.75rem; margin-top: 24px; }
+    .disclaimer { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 16px; margin-bottom: 24px; font-size: 0.8rem; color: #666; line-height: 1.6; }
+    #no-data { color: #555; text-align: center; padding: 40px; }
+  </style>
+</head>
+<body>
+<h1>Eventum Lab</h1>
+<p class="subtitle">Automated event-driven research system — public signal track record</p>
+
+<div class="disclaimer">
+  Every signal is published before its outcome is known. Every signal receives an automatic follow-up.
+  No subscription. No guarantees. Past results do not predict future performance.
+  This is not investment advice. Trade at your own risk.
+  Channel: <a href="https://t.me/eventum_lab" target="_blank">@eventum_lab</a>
+</div>
+
+<div class="cards" id="cards"></div>
+
+<div class="chart-wrap">
+  <h2>Equity curve (cumulative net return, closed signals)</h2>
+  <canvas id="equityChart" height="80"></canvas>
+</div>
+
+<div class="chart-wrap">
+  <h2>Recent signals</h2>
+  <div class="filters">
+    <select id="filterSymbol"><option value="">All symbols</option></select>
+    <select id="filterOutcome"><option value="">All outcomes</option><option value="win">Win</option><option value="loss">Loss</option><option value="flat">Flat</option><option value="open">Open</option></select>
+    <select id="filterDir"><option value="">All directions</option><option value="LONG">Long</option><option value="SHORT">Short</option></select>
+    <input id="filterSearch" placeholder="Search…" style="flex:1;min-width:120px">
+  </div>
+  <div id="table-wrap">
+    <p id="no-data">Loading…</p>
+  </div>
+</div>
+
+<p class="updated" id="updated"></p>
+
+<script>
+let allSignals = [];
+
+async function load() {
+  try {
+    const r = await fetch('data/track.json?_=' + Date.now());
+    if (!r.ok) throw new Error('fetch failed');
+    const d = await r.json();
+    render(d);
+  } catch(e) {
+    document.getElementById('no-data').textContent = 'No data yet — check back after first signals are published.';
+  }
+}
+
+function render(d) {
+  const agg = d.aggregates || {};
+  allSignals = d.all_signals || [];
+
+  // Cards
+  const hitStr = agg.hit_rate != null ? agg.hit_rate.toFixed(1) + '%' : 'n/a';
+  const meanStr = agg.mean_net_pct != null ? (agg.mean_net_pct > 0 ? '+' : '') + agg.mean_net_pct.toFixed(2) + '%' : 'n/a';
+  const cumStr = agg.cum_net_pct != null ? (agg.cum_net_pct > 0 ? '+' : '') + agg.cum_net_pct.toFixed(2) + '%' : 'n/a';
+  const ddStr = agg.max_drawdown_pct != null ? '-' + agg.max_drawdown_pct.toFixed(1) + '%' : 'n/a';
+  const sharpeStr = agg.sharpe_annualized != null ? agg.sharpe_annualized.toFixed(2) : (agg.n_closed < 30 ? 'n/a (need ≥30)' : 'n/a');
+
+  document.getElementById('cards').innerHTML = [
+    ['Signals', agg.n_total ?? 0, 'neutral'],
+    ['Closed', agg.n_closed ?? 0, 'neutral'],
+    ['Pending', agg.n_pending ?? 0, 'neutral'],
+    ['Hit rate', hitStr, agg.hit_rate > 55 ? 'green' : agg.hit_rate < 45 ? 'red' : 'neutral'],
+    ['Mean net', meanStr, agg.mean_net_pct > 0 ? 'green' : agg.mean_net_pct < 0 ? 'red' : 'neutral'],
+    ['Cum. return', cumStr, agg.cum_net_pct > 0 ? 'green' : agg.cum_net_pct < 0 ? 'red' : 'neutral'],
+    ['Max drawdown', ddStr, agg.max_drawdown_pct > 10 ? 'red' : 'neutral'],
+    ['Sharpe', sharpeStr, 'neutral'],
+  ].map(([label, val, cls]) =>
+    `<div class="card"><h3>${label}</h3><div class="val ${cls}">${val}</div></div>`
+  ).join('');
+
+  // Equity curve
+  const eq = d.equity_curve || [];
+  if (eq.length > 0) {
+    new Chart(document.getElementById('equityChart'), {
+      type: 'line',
+      data: {
+        labels: eq.map((_, i) => '#' + (i + 1)),
+        datasets: [{
+          data: eq,
+          borderColor: eq[eq.length-1] >= 0 ? '#4caf50' : '#f44336',
+          borderWidth: 2,
+          fill: true,
+          backgroundColor: 'rgba(76,175,80,0.05)',
+          pointRadius: eq.length < 30 ? 3 : 0,
+          tension: 0.3,
+        }],
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#555' }, grid: { color: '#1e1e1e' } },
+          y: { ticks: { color: '#555', callback: v => v.toFixed(1) + '%' }, grid: { color: '#1e1e1e' } },
+        },
+      },
+    });
+  } else {
+    document.getElementById('equityChart').parentElement.querySelector('h2').textContent += ' — no closed signals yet';
+  }
+
+  // Populate symbol filter
+  const syms = [...new Set(allSignals.map(s => s.symbol))].sort();
+  const sel = document.getElementById('filterSymbol');
+  syms.forEach(sym => {
+    const o = document.createElement('option');
+    o.value = sym; o.textContent = sym;
+    sel.appendChild(o);
+  });
+
+  renderTable(allSignals);
+
+  if (d.updated_at) {
+    document.getElementById('updated').textContent = 'Last updated: ' + d.updated_at.replace('T', ' ').replace('Z', ' UTC');
+  }
+}
+
+function renderTable(signals) {
+  const wrap = document.getElementById('table-wrap');
+  if (!signals.length) {
+    wrap.innerHTML = '<p id="no-data">No signals published yet.</p>';
+    return;
+  }
+  const rows = [...signals].reverse().slice(0, 30).map(s => {
+    const net = s.net_return_pct;
+    const netStr = net != null ? (net > 0 ? '+' : '') + net.toFixed(2) + '%' : '—';
+    const link = s.signal_permalink ? `<a href="${s.signal_permalink}" target="_blank">#${s.seq}</a>` : `#${s.seq}`;
+    const ts = (s.signal_posted_at || '').replace('T', ' ').replace('Z', '').slice(0, 16);
+    return `<tr>
+      <td>${link}</td>
+      <td>${ts}</td>
+      <td>${s.symbol}</td>
+      <td><span class="badge ${(s.direction||'').toLowerCase()}">${s.direction}</span></td>
+      <td>${s.confidence_label || '—'}</td>
+      <td>${s.exit_window}</td>
+      <td><span class="badge ${s.outcome}">${s.outcome}</span></td>
+      <td>${netStr}</td>
+      <td>${s.followup_permalink ? `<a href="${s.followup_permalink}" target="_blank">→</a>` : '—'}</td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML = `<table>
+    <thead><tr><th>#</th><th>Time UTC</th><th>Symbol</th><th>Direction</th><th>Conf</th><th>Window</th><th>Status</th><th>Result</th><th>Follow-up</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function applyFilters() {
+  const sym = document.getElementById('filterSymbol').value;
+  const out = document.getElementById('filterOutcome').value;
+  const dir = document.getElementById('filterDir').value;
+  const q = document.getElementById('filterSearch').value.toLowerCase();
+  const filtered = allSignals.filter(s =>
+    (!sym || s.symbol === sym) &&
+    (!out || s.outcome === out) &&
+    (!dir || s.direction === dir) &&
+    (!q || JSON.stringify(s).toLowerCase().includes(q))
+  );
+  renderTable(filtered);
+}
+
+['filterSymbol','filterOutcome','filterDir','filterSearch'].forEach(id => {
+  document.getElementById(id).addEventListener('change', applyFilters);
+  document.getElementById(id).addEventListener('input', applyFilters);
+});
+
+load();
+</script>
+</body>
+</html>
