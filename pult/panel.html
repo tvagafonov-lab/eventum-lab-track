@@ -250,7 +250,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 /* ---------- панель свойств ---------- */
 #drawer {
-  width: 384px; flex: none; min-height: 0;
+  width: 404px; flex: none; min-height: 0;
   background: var(--surface);
   border-left: 1px solid var(--line);
   display: flex; flex-direction: column;
@@ -264,10 +264,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .v-badge { font-size: 11px; font-weight: 600; padding: 1.5px 8px; border-radius: 999px; }
 .v-badge.ok { color: var(--ok); background: color-mix(in srgb, var(--ok) 13%, transparent); }
 .v-badge.q { color: var(--accent-ink); background: var(--accent-soft); }
-#tabs { display: flex; gap: 2px; margin-top: 14px; border-bottom: 1px solid var(--line); }
+#tabs { display: flex; gap: 2px; margin-top: 14px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+#tabs::-webkit-scrollbar { display: none; }
 #tabs button {
-  padding: 7px 11px 8px; font-size: 12.5px; font-weight: 500; color: var(--muted);
+  padding: 7px 8px 8px; font-size: 12px; font-weight: 500; color: var(--muted);
   border-bottom: 2px solid transparent; margin-bottom: -1px; border-radius: 6px 6px 0 0;
+  white-space: nowrap; flex: none;
 }
 #tabs button:hover { color: var(--ink); background: var(--surface2); }
 #tabs button.on { color: var(--accent-ink); border-bottom-color: var(--accent); font-weight: 600; }
@@ -349,6 +351,51 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   padding: 8px 14px; border-radius: 8px; box-shadow: var(--shadow-lift);
 }
 
+/* ---------- замысел, дрейф, план ---------- */
+.drift-mark {
+  position: absolute; top: -8px; left: -8px;
+  width: 19px; height: 19px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 10px;
+  background: var(--surface); border: 1.5px solid var(--st-debug);
+  box-shadow: var(--shadow);
+}
+.warn-card {
+  border: 1px solid color-mix(in srgb, var(--st-debug) 45%, transparent);
+  background: color-mix(in srgb, var(--st-debug) 9%, transparent);
+  border-radius: 10px; padding: 10px 12px; font-size: 12.5px; color: var(--ink);
+}
+.spec-note {
+  font-size: 11.5px; color: var(--faint);
+  border-top: 1px dashed var(--line); margin-top: 14px; padding-top: 9px;
+}
+#plan-chip {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 600; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 4px 11px; background: var(--surface2); white-space: nowrap;
+}
+#plan-chip:hover { border-color: var(--accent); color: var(--accent-ink); background: var(--accent-soft); }
+#plan-chip .bar { width: 44px; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+#plan-chip .bar i { display: block; height: 100%; background: var(--st-ready); }
+.plan-row {
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 9px 11px; margin-bottom: 8px; background: var(--surface2); cursor: pointer;
+}
+.plan-row:hover { border-color: var(--accent); }
+.plan-row .p-head { display: flex; gap: 8px; align-items: baseline; }
+.plan-ico { flex: none; font-size: 12px; width: 15px; text-align: center; }
+.plan-row.todo .plan-ico { color: var(--faint); }
+.plan-row.doing .plan-ico { color: var(--st-build); }
+.plan-row.done .plan-ico { color: var(--st-ready); }
+.plan-row.dropped { opacity: .55; }
+.plan-row.dropped .p-title { text-decoration: line-through; }
+.plan-row .p-title { font-weight: 600; font-size: 13px; }
+.plan-row .p-state { margin-left: auto; font-size: 10.5px; color: var(--faint); white-space: nowrap; }
+.plan-row .p-note { font-size: 11.5px; color: var(--muted); margin-top: 5px; }
+.plan-row .p-mods { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.plan-mini { display: flex; gap: 7px; align-items: baseline; padding: 3px 0; font-size: 12.5px; }
+.plan-mini .plan-ico { font-size: 11px; }
+
 /* ---------- узкие экраны ---------- */
 #drawer-close { display: none; margin-left: auto; color: var(--muted); font-size: 18px; width: 30px; height: 30px; border-radius: 8px; }
 #drawer-close:hover { background: var(--surface2); }
@@ -359,7 +406,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   }
   #drawer.closed { display: none; }
   #drawer-close { display: grid; place-items: center; }
-  #legend, .tb-docs, #map-meta { display: none; }
+  #legend, .tb-docs, #map-meta, #plan-chip { display: none; }
 }
 </style>
 </head>
@@ -373,6 +420,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
     <span id="map-meta"></span>
     <span class="spacer"></span>
     <nav class="tb-docs" id="doc-chips" aria-label="Документы продукта"></nav>
+    <button id="plan-chip" hidden title="План разработки — открыть">
+      <span class="bar"><i></i></span><span id="plan-txt"></span>
+    </button>
     <div class="zoomer" role="group" aria-label="Масштаб">
       <button id="z-out" title="Отдалить" aria-label="Отдалить">−</button>
       <span id="zoom-pct">100%</span>
@@ -411,7 +461,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 </div>
 
 <!-- PULT:DATA:START -->
-<script type="application/json" id="pult-data">{"pult":1,"product":{"name":"Eventum Lab","codename":"eventum-lab","tagline":"Автоматическая event-driven система: сигналы публикуются до исхода, каждый получает фоллоу-ап, результат — в публичном track record","status":"live","owner":"tvagafonov","updated":"2026-08-30","updated_by":"agent","docs":{"product":"PRODUCT.md","changelog":"CHANGELOG.md"},"repos":[{"id":"track","url":"https://github.com/tvagafonov-lab/eventum-lab-track","note":"Публичная витрина track record (GitHub Pages) + data/track.json","verified":true},{"id":"core","note":"Репозиторий движка (радар, аналитик, публикация, оценка). Название и расположение не подтверждены — карта построена по витрине.","verified":false}]},"modules":[{"id":"radar","title":"Радар событий","icon":"📡","kind":"pipeline","status":"ready","verified":false,"summary":"Мониторит источники событий и отбирает кандидатов для анализа","details":"Периодически опрашивает источники (новости, корпоративные календари,\nанонсы) и превращает сырые упоминания в события-кандидаты единого\nформата. Отфильтровывает шум до передачи аналитику.\n\nРеконструировано по описанию продукта («automated event-driven\nresearch system»); состав источников не подтверждён.\n","files":[{"repo":"core","path":"src/radar/","role":"owner","verified":false}],"variables":[{"key":"POLL_MINUTES","title":"Период опроса источников","type":"number","value":15,"edit":"panel","location":"core:config/settings.yaml","hint":"Как часто радар обходит источники, в минутах","verified":false},{"key":"SOURCES","title":"Список источников","type":"string","value":"см. конфиг","edit":"code","location":"core:src/radar/sources.py","hint":"Добавление источника требует парсера — только через код","verified":false}]},{"id":"analyst","title":"Аналитик","icon":"🧠","kind":"pipeline","status":"ready","verified":false,"summary":"Оценивает событие: направление LONG/SHORT, уверенность, окно выхода","details":"Принимает событие-кандидат и выносит решение: торгуемо ли оно,\nв какую сторону (LONG/SHORT), с какой уверенностью (confidence_label\nвиден в витрине) и с каким окном выхода (exit_window).\nСигналы ниже порога уверенности отбрасываются и не публикуются.\n","files":[{"repo":"core","path":"src/analyst/","role":"owner","verified":false}],"variables":[{"key":"MIN_CONFIDENCE","title":"Порог публикации","type":"number","value":0.65,"edit":"panel","location":"core:config/settings.yaml","hint":"Ниже порога сигнал отбрасывается до публикации","verified":false},{"key":"EXIT_WINDOWS","title":"Допустимые окна выхода","type":"string","value":"1d, 3d, 1w","edit":"panel","location":"core:config/settings.yaml","hint":"Набор окон, из которых аналитик выбирает exit_window","verified":false},{"key":"DECISION_LOGIC","title":"Логика принятия решения","type":"string","value":"модель/правила","edit":"code","location":"core:src/analyst/","hint":"Ядро системы — меняется только через код и бэктест","verified":false}]},{"id":"publisher","title":"Публикатор сигналов","icon":"📣","kind":"pipeline","status":"ready","verified":false,"summary":"Постит сигнал в канал до того, как исход известен; фиксирует permalink и номер","details":"Оформляет решение аналитика в пост и публикует в Telegram-канал\n@eventum_lab. Ключевой принцип честности продукта: публикация\nстрого ДО исхода. Сохраняет seq, signal_permalink и время\nпубликации — они попадают в track.json и витрину.\n","files":[{"repo":"core","path":"src/publisher/","role":"owner","verified":false}],"variables":[{"key":"CHANNEL","title":"Канал публикации","type":"string","value":"@eventum_lab","edit":"code","location":"core:config/settings.yaml","hint":"Смена канала — публичное действие, только осознанно через код","verified":true},{"key":"POST_TEMPLATE","title":"Шаблон поста","type":"string","value":"шаблон","edit":"code","location":"core:src/publisher/template.py","verified":false}]},{"id":"followup","title":"Автофоллоу-ап","icon":"🔁","kind":"pipeline","status":"ready","verified":false,"summary":"Каждый сигнал получает автоматический пост-продолжение","details":"По расписанию публикует продолжение к каждому сигналу\n(«Every signal receives an automatic follow-up» — обещание с витрины).\nСохраняет followup_permalink, который витрина показывает стрелкой «→».\n","files":[{"repo":"core","path":"src/followup/","role":"owner","verified":false}],"variables":[{"key":"FOLLOWUP_DELAY_H","title":"Задержка фоллоу-апа","type":"number","value":24,"edit":"panel","location":"core:config/settings.yaml","hint":"Через сколько часов после сигнала выходит продолжение","verified":false}]},{"id":"referee","title":"Оценщик исходов","icon":"⚖️","kind":"pipeline","status":"ready","verified":false,"summary":"Закрывает сигнал по окну выхода: win/loss/flat и чистая доходность","details":"Когда exit_window истекает, берёт рыночные цены, считает результат\nсигнала с учётом издержек (net_return_pct) и присваивает исход:\nwin / loss / flat. До этого сигнал висит в статусе open.\n","files":[{"repo":"core","path":"src/referee/","role":"owner","verified":false}],"variables":[{"key":"FEES_PCT","title":"Издержки на сделку","type":"number","value":0.1,"edit":"panel","location":"core:config/settings.yaml","hint":"Процент издержек, вычитаемый при расчёте net return","verified":false},{"key":"FLAT_BAND_PCT","title":"Полоса flat-исхода","type":"number","value":0.2,"edit":"panel","location":"core:config/settings.yaml","hint":"Результат внутри ±полосы считается flat, не win/loss","verified":false}]},{"id":"ledger","title":"Учёт результатов","icon":"📊","kind":"pipeline","status":"ready","verified":false,"summary":"Считает агрегаты и equity curve, собирает и публикует track.json","details":"Раз в сутки собирает все сигналы: hit rate, средний и накопленный\nnet return, максимальную просадку, Sharpe (только при ≥30 закрытых —\nпорог виден в коде витрины). Формирует data/track.json и пушит его\nв репозиторий витрины. По истории коммитов — ежедневно в 00:30–02:00 UTC,\nсообщение «update track.json [дата]».\n","files":[{"repo":"core","path":"src/ledger/","role":"owner","verified":false},{"repo":"track","path":"data/track.json","role":"owner","verified":true}],"variables":[{"key":"UPDATE_CRON","title":"Расписание обновления","type":"string","value":"0 1 * * *","edit":"panel","location":"core:config/settings.yaml","hint":"Фактические коммиты ложатся в 00:30–02:00 UTC ежедневно","verified":false},{"key":"MIN_CLOSED_FOR_SHARPE","title":"Минимум закрытых для Sharpe","type":"number","value":30,"edit":"panel","location":"track:index.html","hint":"Витрина показывает «n/a (need ≥30)», пока закрытых меньше","verified":true}]},{"id":"showcase","title":"Витрина","icon":"🌐","kind":"pipeline","status":"ready","verified":true,"summary":"Публичная страница track record: карточки метрик, equity curve, таблица сигналов","details":"Статическая страница на GitHub Pages (этот репозиторий). Читает\ndata/track.json, показывает карточки агрегатов, equity curve\n(Chart.js) и таблицу последних сигналов с фильтрами по символу,\nисходу и направлению. Дисклеймер и ссылка на канал — в шапке.\n","files":[{"repo":"track","path":"index.html","role":"owner","verified":true},{"repo":"track","path":"data/track.json","role":"reads","verified":true}],"variables":[{"key":"ROWS_LIMIT","title":"Строк в таблице","type":"number","value":30,"edit":"panel","location":"track:index.html","hint":"Сколько последних сигналов показывает таблица","verified":true},{"key":"SHARPE_HINT_THRESHOLD","title":"Порог подсказки Sharpe","type":"number","value":30,"edit":"code","location":"track:index.html","hint":"Дублирует MIN_CLOSED_FOR_SHARPE — кандидат на общий конфиг","verified":true}]},{"id":"telegram","title":"Telegram","icon":"💬","kind":"service","status":"ready","verified":true,"summary":"Канал @eventum_lab — точка публикации сигналов и фоллоу-апов","details":"Служебный модуль-обёртка над Telegram Bot API. Не участвует\nв конвейере напрямую: им пользуются публикатор и фоллоу-ап.\n","files":[{"repo":"core","path":"src/services/telegram.py","role":"owner","verified":false}],"variables":[{"key":"BOT_TOKEN","title":"Токен бота","type":"string","value":"•••","edit":"code","location":"core:.env","hint":"Секрет — никогда не выводится в панель","verified":false}]},{"id":"market","title":"Рыночные данные","icon":"📈","kind":"service","status":"ready","verified":false,"summary":"Котировки для расчёта исходов и доходности","details":"Источник цен (API котировок). Используется оценщиком исходов;\nвозможно, аналитиком для контекста. Провайдер не подтверждён.\n","files":[{"repo":"core","path":"src/services/market.py","role":"owner","verified":false}],"variables":[{"key":"PROVIDER","title":"Провайдер котировок","type":"string","value":"не подтверждён","edit":"code","location":"core:src/services/market.py","verified":false}]},{"id":"cron","title":"Планировщик","icon":"⏰","kind":"service","status":"ready","verified":false,"summary":"Запускает радар, фоллоу-апы и ежедневный учёт по расписанию","details":"Служебный модуль расписаний. Ежедневный запуск учёта виден\nпо истории коммитов витрины (00:30–02:00 UTC).\n","files":[{"repo":"core","path":"src/services/scheduler.py","role":"owner","verified":false}],"variables":[]},{"id":"git-push","title":"GitHub-публикация","icon":"🗃️","kind":"service","status":"ready","verified":true,"summary":"Коммитит и пушит track.json в репозиторий витрины","details":"Технический мост между движком и витриной: ежедневный коммит\n«update track.json [дата UTC]» в tvagafonov-lab/eventum-lab-track.\n","files":[{"repo":"core","path":"src/services/gitpush.py","role":"owner","verified":false}],"variables":[]}],"flows":[{"from":"radar","to":"analyst","label":"событие-кандидат"},{"from":"analyst","to":"publisher","label":"сигнал","when":"уверенность ≥ MIN_CONFIDENCE"},{"from":"publisher","to":"followup","when":"наступил срок фоллоу-апа"},{"from":"publisher","to":"referee","when":"истекло окно выхода"},{"from":"referee","to":"ledger","label":"закрытый сигнал"},{"from":"ledger","to":"showcase","label":"track.json"}],"uses":[{"module":"radar","service":"cron","note":"периодический запуск"},{"module":"publisher","service":"telegram","note":"публикация сигнала"},{"module":"followup","service":"telegram","note":"публикация фоллоу-апа"},{"module":"followup","service":"cron","note":"проверка сроков"},{"module":"referee","service":"market","note":"цены для расчёта исхода"},{"module":"ledger","service":"cron","note":"ежедневный запуск"},{"module":"ledger","service":"git-push","note":"доставка track.json в витрину"}],"shared":[{"repo":"core","path":"src/common/signal.py","note":"Схема сигнала — единый формат данных между всеми модулями","used_by":["radar","analyst","publisher","followup","referee","ledger"],"verified":false},{"repo":"core","path":"config/settings.yaml","note":"Общий конфиг: пороги, расписания, издержки","used_by":["radar","analyst","followup","referee","ledger"],"verified":false},{"repo":"track","path":"data/track.json","note":"Интерфейсный файл: пишет учёт, читает витрина","used_by":["ledger","showcase"],"verified":true}]}</script>
+<script type="application/json" id="pult-data">{"pult":1,"product":{"name":"Eventum Lab","codename":"eventum-lab","tagline":"Автоматическая event-driven система: сигналы публикуются до исхода, каждый получает фоллоу-ап, результат — в публичном track record","status":"live","owner":"tvagafonov","updated":"2026-08-30","updated_by":"agent","docs":{"product":"PRODUCT.md","changelog":"CHANGELOG.md"},"repos":[{"id":"track","url":"https://github.com/tvagafonov-lab/eventum-lab-track","note":"Публичная витрина track record (GitHub Pages) + data/track.json","verified":true},{"id":"core","note":"Репозиторий движка (радар, аналитик, публикация, оценка). Название и расположение не подтверждены — карта построена по витрине.","verified":false}]},"modules":[{"id":"radar","title":"Радар событий","icon":"📡","kind":"pipeline","status":"ready","verified":false,"summary":"Мониторит источники событий и отбирает кандидатов для анализа","details":"Периодически опрашивает источники (новости, корпоративные календари, анонсы) и превращает сырые упоминания в события-кандидаты единого формата. Отфильтровывает шум до передачи аналитику.\nРеконструировано по описанию продукта («automated event-driven research system»); состав источников не подтверждён.\n","spec":"Следить за потоком рыночных и корпоративных событий из настроенных источников и отдавать аналитику только события, потенциально двигающие цену. Шум отсеивается до анализа, чтобы аналитик работал с коротким списком кандидатов.\n","files":[{"repo":"core","path":"src/radar/","role":"owner","verified":false}],"variables":[{"key":"POLL_MINUTES","title":"Период опроса источников","type":"number","value":15,"edit":"panel","location":"core:config/settings.yaml","hint":"Как часто радар обходит источники, в минутах","verified":false},{"key":"SOURCES","title":"Список источников","type":"string","value":"см. конфиг","edit":"code","location":"core:src/radar/sources.py","hint":"Добавление источника требует парсера — только через код","verified":false}]},{"id":"analyst","title":"Аналитик","icon":"🧠","kind":"pipeline","status":"ready","verified":false,"summary":"Оценивает событие: направление LONG/SHORT, уверенность, окно выхода","details":"Принимает событие-кандидат и выносит решение: торгуемо ли оно, в какую сторону (LONG/SHORT), с какой уверенностью (confidence_label виден в витрине) и с каким окном выхода (exit_window). Сигналы ниже порога уверенности отбрасываются и не публикуются.\n","spec":"По каждому событию-кандидату решить: торгуемо ли оно, в какую сторону, с какой уверенностью и в каком окне выхода. В канал попадают только сигналы выше порога — лучше пропустить слабое событие, чем размыть track record.\n","files":[{"repo":"core","path":"src/analyst/","role":"owner","verified":false}],"variables":[{"key":"MIN_CONFIDENCE","title":"Порог публикации","type":"number","value":0.65,"edit":"panel","location":"core:config/settings.yaml","hint":"Ниже порога сигнал отбрасывается до публикации","verified":false},{"key":"EXIT_WINDOWS","title":"Допустимые окна выхода","type":"string","value":"1d, 3d, 1w","edit":"panel","location":"core:config/settings.yaml","hint":"Набор окон, из которых аналитик выбирает exit_window","verified":false},{"key":"DECISION_LOGIC","title":"Логика принятия решения","type":"string","value":"модель/правила","edit":"code","location":"core:src/analyst/","hint":"Ядро системы — меняется только через код и бэктест","verified":false}]},{"id":"publisher","title":"Публикатор сигналов","icon":"📣","kind":"pipeline","status":"ready","verified":false,"summary":"Постит сигнал в канал до того, как исход известен; фиксирует permalink и номер","details":"Оформляет решение аналитика в пост и публикует в Telegram-канал @eventum_lab. Ключевой принцип честности продукта: публикация строго ДО исхода. Сохраняет seq, signal_permalink и время публикации — они попадают в track.json и витрину.\n","spec":"Опубликовать сигнал до того, как исход известен, и зафиксировать доказательство публикации: номер, permalink, время. Это основа честности продукта — публикацию задним числом исключить конструктивно, а не дисциплиной.\n","files":[{"repo":"core","path":"src/publisher/","role":"owner","verified":false}],"variables":[{"key":"CHANNEL","title":"Канал публикации","type":"string","value":"@eventum_lab","edit":"code","location":"core:config/settings.yaml","hint":"Смена канала — публичное действие, только осознанно через код","verified":true},{"key":"POST_TEMPLATE","title":"Шаблон поста","type":"string","value":"шаблон","edit":"code","location":"core:src/publisher/template.py","verified":false}]},{"id":"followup","title":"Автофоллоу-ап","icon":"🔁","kind":"pipeline","status":"ready","verified":false,"summary":"Каждый сигнал получает автоматический пост-продолжение","details":"По расписанию публикует продолжение к каждому сигналу («Every signal receives an automatic follow-up» — обещание с витрины). Сохраняет followup_permalink, который витрина показывает стрелкой «→».\n","spec":"Ни один сигнал не остаётся без продолжения: по каждому опубликованному сигналу в заданный срок автоматически выходит фоллоу-ап со ссылкой на исходный пост.\n","files":[{"repo":"core","path":"src/followup/","role":"owner","verified":false}],"variables":[{"key":"FOLLOWUP_DELAY_H","title":"Задержка фоллоу-апа","type":"number","value":24,"edit":"panel","location":"core:config/settings.yaml","hint":"Через сколько часов после сигнала выходит продолжение","verified":false}]},{"id":"referee","title":"Оценщик исходов","icon":"⚖️","kind":"pipeline","status":"ready","verified":false,"summary":"Закрывает сигнал по окну выхода: win/loss/flat и чистая доходность","details":"Когда exit_window истекает, берёт рыночные цены, считает результат сигнала с учётом издержек (net_return_pct) и присваивает исход: win / loss / flat. До этого сигнал висит в статусе open.\n","spec":"По истечении окна выхода закрыть сигнал объективно: рыночные цены, издержки, итог win/loss/flat. Ручные правки исходов исключены — оценщик единственный, кто закрывает сигналы.\n","files":[{"repo":"core","path":"src/referee/","role":"owner","verified":false}],"variables":[{"key":"FEES_PCT","title":"Издержки на сделку","type":"number","value":0.1,"edit":"panel","location":"core:config/settings.yaml","hint":"Процент издержек, вычитаемый при расчёте net return","verified":false},{"key":"FLAT_BAND_PCT","title":"Полоса flat-исхода","type":"number","value":0.2,"edit":"panel","location":"core:config/settings.yaml","hint":"Результат внутри ±полосы считается flat, не win/loss","verified":false}]},{"id":"ledger","title":"Учёт результатов","icon":"📊","kind":"pipeline","status":"ready","verified":false,"summary":"Считает агрегаты и equity curve, собирает и публикует track.json","details":"Раз в сутки собирает все сигналы: hit rate, средний и накопленный net return, максимальную просадку, Sharpe (только при ≥30 закрытых — порог виден в коде витрины). Формирует data/track.json и пушит его в репозиторий витрины. По истории коммитов — ежедневно в 00:30–02:00 UTC, сообщение «update track.json [дата]».\n","spec":"Вести полный публичный учёт: все сигналы без исключений, агрегаты (hit rate, накопленная доходность, просадка, Sharpe при достаточной истории) и ежедневная выгрузка track.json в витрину в фиксированное время.\n","drift":"Замысел: ежедневное обновление в 01:00 UTC ровно. Факт: коммиты витрины ложатся вразброс 00:30–02:00 UTC. Либо расписание в карте неверно, либо запуск нестабилен — уточнить у владельца.","files":[{"repo":"core","path":"src/ledger/","role":"owner","verified":false},{"repo":"track","path":"data/track.json","role":"owner","verified":true}],"variables":[{"key":"UPDATE_CRON","title":"Расписание обновления","type":"string","value":"0 1 * * *","edit":"panel","location":"core:config/settings.yaml","hint":"Фактические коммиты ложатся в 00:30–02:00 UTC ежедневно","verified":false},{"key":"MIN_CLOSED_FOR_SHARPE","title":"Минимум закрытых для Sharpe","type":"number","value":30,"edit":"panel","location":"track:index.html","hint":"Витрина показывает «n/a (need ≥30)», пока закрытых меньше","verified":true}]},{"id":"showcase","title":"Витрина","icon":"🌐","kind":"pipeline","status":"ready","verified":true,"summary":"Публичная страница track record: карточки метрик, equity curve, таблица сигналов","details":"Статическая страница на GitHub Pages (этот репозиторий). Читает data/track.json, показывает карточки агрегатов, equity curve (Chart.js) и таблицу последних сигналов с фильтрами по символу, исходу и направлению. Дисклеймер и ссылка на канал — в шапке.\n","spec":"Публичная страница, где любой может проверить историю: метрики, equity curve, таблица сигналов со ссылками на посты. Без регистрации, без обещаний доходности, с обязательным дисклеймером.\n","files":[{"repo":"track","path":"index.html","role":"owner","verified":true},{"repo":"track","path":"data/track.json","role":"reads","verified":true}],"variables":[{"key":"ROWS_LIMIT","title":"Строк в таблице","type":"number","value":30,"edit":"panel","location":"track:index.html","hint":"Сколько последних сигналов показывает таблица","verified":true},{"key":"SHARPE_HINT_THRESHOLD","title":"Порог подсказки Sharpe","type":"number","value":30,"edit":"code","location":"track:index.html","hint":"Дублирует MIN_CLOSED_FOR_SHARPE — кандидат на общий конфиг","verified":true}]},{"id":"telegram","title":"Telegram","icon":"💬","kind":"service","status":"ready","verified":true,"summary":"Канал @eventum_lab — точка публикации сигналов и фоллоу-апов","details":"Служебный модуль-обёртка над Telegram Bot API. Не участвует в конвейере напрямую: им пользуются публикатор и фоллоу-ап.\n","files":[{"repo":"core","path":"src/services/telegram.py","role":"owner","verified":false}],"variables":[{"key":"BOT_TOKEN","title":"Токен бота","type":"string","value":"•••","edit":"code","location":"core:.env","hint":"Секрет — никогда не выводится в панель","verified":false}]},{"id":"market","title":"Рыночные данные","icon":"📈","kind":"service","status":"ready","verified":false,"summary":"Котировки для расчёта исходов и доходности","details":"Источник цен (API котировок). Используется оценщиком исходов; возможно, аналитиком для контекста. Провайдер не подтверждён.\n","files":[{"repo":"core","path":"src/services/market.py","role":"owner","verified":false}],"variables":[{"key":"PROVIDER","title":"Провайдер котировок","type":"string","value":"не подтверждён","edit":"code","location":"core:src/services/market.py","verified":false}]},{"id":"cron","title":"Планировщик","icon":"⏰","kind":"service","status":"ready","verified":false,"summary":"Запускает радар, фоллоу-апы и ежедневный учёт по расписанию","details":"Служебный модуль расписаний. Ежедневный запуск учёта виден по истории коммитов витрины (00:30–02:00 UTC).\n","files":[{"repo":"core","path":"src/services/scheduler.py","role":"owner","verified":false}],"variables":[]},{"id":"git-push","title":"GitHub-публикация","icon":"🗃️","kind":"service","status":"ready","verified":true,"summary":"Коммитит и пушит track.json в репозиторий витрины","details":"Технический мост между движком и витриной: ежедневный коммит «update track.json [дата UTC]» в tvagafonov-lab/eventum-lab-track.\n","files":[{"repo":"core","path":"src/services/gitpush.py","role":"owner","verified":false}],"variables":[]}],"flows":[{"from":"radar","to":"analyst","label":"событие-кандидат"},{"from":"analyst","to":"publisher","label":"сигнал","when":"уверенность ≥ MIN_CONFIDENCE"},{"from":"publisher","to":"followup","when":"наступил срок фоллоу-апа"},{"from":"publisher","to":"referee","when":"истекло окно выхода"},{"from":"referee","to":"ledger","label":"закрытый сигнал"},{"from":"ledger","to":"showcase","label":"track.json"}],"uses":[{"module":"radar","service":"cron","note":"периодический запуск"},{"module":"publisher","service":"telegram","note":"публикация сигнала"},{"module":"followup","service":"telegram","note":"публикация фоллоу-апа"},{"module":"followup","service":"cron","note":"проверка сроков"},{"module":"referee","service":"market","note":"цены для расчёта исхода"},{"module":"ledger","service":"cron","note":"ежедневный запуск"},{"module":"ledger","service":"git-push","note":"доставка track.json в витрину"}],"plan":[{"id":"p1","title":"Конвейер сигналов v1: радар → аналитик → публикация","state":"done","modules":["radar","analyst","publisher"]},{"id":"p2","title":"Автофоллоу-апы и объективная оценка исходов","state":"done","modules":["followup","referee"]},{"id":"p3","title":"Публичная витрина track record","state":"done","modules":["ledger","showcase"]},{"id":"p4","title":"Накопить ≥30 закрытых сигналов для Sharpe","state":"doing","modules":["referee","ledger"],"note":"Витрина показывает «n/a (need ≥30)» — история ещё копится"},{"id":"p5","title":"Подтвердить карту Пульта (снять знаки «?»)","state":"todo","modules":[],"note":"Пройтись по панели и сказать агенту, что описано верно, а что нет"},{"id":"p6","title":"Дрейф-контроль doctor: регулярная сверка карты с кодом движка","state":"todo","modules":[]}],"shared":[{"repo":"core","path":"src/common/signal.py","note":"Схема сигнала — единый формат данных между всеми модулями","used_by":["radar","analyst","publisher","followup","referee","ledger"],"verified":false},{"repo":"core","path":"config/settings.yaml","note":"Общий конфиг: пороги, расписания, издержки","used_by":["radar","analyst","followup","referee","ledger"],"verified":false},{"repo":"track","path":"data/track.json","note":"Интерфейсный файл: пишет учёт, читает витрина","used_by":["ledger","showcase"],"verified":true}]}</script>
 <!-- PULT:DATA:END -->
 
 <script>
@@ -423,6 +473,7 @@ const MODULES = DATA.modules || [];
 const FLOWS = DATA.flows || [];
 const USES = DATA.uses || [];
 const SHARED = DATA.shared || [];
+const PLAN = DATA.plan || [];
 const byId = Object.fromEntries(MODULES.map(m => [m.id, m]));
 const pipeline = MODULES.filter(m => m.kind !== "service");
 const services = MODULES.filter(m => m.kind === "service");
@@ -432,6 +483,7 @@ const PST_LABEL = { spec: "спецификация", build: "в разрабо�
 const PST_COLOR = { spec: "var(--st-spec)", build: "var(--st-build)", live: "var(--st-ready)", frozen: "var(--st-off)" };
 const ROLE_LABEL = { owner: "владелец", part: "частично", reads: "читает" };
 const KIND_LABEL = { pipeline: "модуль конвейера", service: "служебный модуль" };
+const PLAN_STATE = { todo: ["○", "в плане"], doing: ["◐", "в работе"], done: ["●", "сделано"], dropped: ["✕", "снято"] };
 
 const qs = new URLSearchParams(location.search);
 if (qs.get("theme") === "dark" || qs.get("theme") === "light") {
@@ -637,6 +689,11 @@ function renderWorld() {
       q.title = "Гипотеза агента — не подтверждено владельцем";
       n.appendChild(q);
     }
+    if (m.drift) {
+      const w = el("span", "drift-mark", "⚠");
+      w.title = "Расходится с замыслом: " + m.drift;
+      n.appendChild(w);
+    }
     n.addEventListener("click", e => { e.stopPropagation(); select(m.id); });
     n.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(m.id); } });
     world.appendChild(n);
@@ -762,6 +819,23 @@ function select(id) {
   renderDrawer();
 }
 
+/* подсветка группы модулей (пункт плана) без открытия свойств */
+function spotlight(ids) {
+  if (!ids || !ids.length) return;
+  const set = new Set(ids);
+  selected = null;
+  document.querySelectorAll(".node").forEach(n => {
+    n.classList.remove("selected");
+    n.classList.toggle("dim", !set.has(n.dataset.id));
+  });
+  for (const e of edgeEls) {
+    const hot = set.has(e.from) && set.has(e.to);
+    e.path.classList.remove("hot");
+    e.path.classList.toggle("dim", !hot);
+    if (e.labelEl) e.labelEl.classList.toggle("dim", !hot);
+  }
+}
+
 /* ==================== черновик изменений ==================== */
 const DRAFT_KEY = "pult-draft:" + (P.codename || "product");
 let draft = {};
@@ -824,7 +898,7 @@ document.getElementById("btn-drop-draft").addEventListener("click", () => {
 const drawer = document.getElementById("drawer");
 const dBody = document.getElementById("drawer-body");
 let tab = "overview";
-document.getElementById("drawer-close").addEventListener("click", () => select(null));
+document.getElementById("drawer-close").addEventListener("click", () => { tab = "overview"; select(null); });
 
 function sub(parent, tag, cls, text) { const n = el(tag, cls, text); parent.appendChild(n); return n; }
 
@@ -912,6 +986,38 @@ function linkRow(parent, targetId, prefix, why) {
   b.addEventListener("click", () => select(targetId));
 }
 
+function planIco(parent, state) {
+  const [ico] = PLAN_STATE[state] || PLAN_STATE.todo;
+  const colors = { todo: "var(--faint)", doing: "var(--st-build)", done: "var(--st-ready)", dropped: "var(--faint)" };
+  const s = sub(parent, "span", "plan-ico", ico);
+  s.style.color = colors[state] || colors.todo;
+  return s;
+}
+
+function renderPlanTab() {
+  sub(dBody, "p", "lead", "Грубый актуальный план: что сделано, что в работе, что впереди. Клик по пункту подсвечивает его модули на схеме.");
+  for (const p of PLAN) {
+    const [, label] = PLAN_STATE[p.state] || PLAN_STATE.todo;
+    const row = sub(dBody, "div", "plan-row " + (p.state || "todo"));
+    const h = sub(row, "div", "p-head");
+    planIco(h, p.state);
+    sub(h, "span", "p-title", p.title);
+    sub(h, "span", "p-state", label + (p.done ? " · " + p.done : ""));
+    if (p.note) sub(row, "div", "p-note", p.note);
+    if ((p.modules || []).length) {
+      const mods = sub(row, "div", "p-mods");
+      p.modules.forEach(id => {
+        const t = byId[id];
+        if (!t) return;
+        const b = sub(mods, "button", "role-tag", (t.icon ? t.icon + " " : "") + t.title);
+        b.addEventListener("click", ev => { ev.stopPropagation(); select(id); });
+      });
+    }
+    row.addEventListener("click", () => spotlight(p.modules));
+  }
+  sub(dBody, "div", "spec-note", "План живёт в pult/product.yaml (секция plan) и правится через агента; прогресс агент обновляет при каждом sync.");
+}
+
 function renderProductOverview() {
   document.getElementById("d-icon").textContent = "🎛";
   document.getElementById("d-title").textContent = P.name || "Продукт";
@@ -919,8 +1025,11 @@ function renderProductOverview() {
   dSub.innerHTML = "";
   const st = sub(dSub, "span", "st-chip", PST_LABEL[P.status] || P.status || "");
   st.style.setProperty("--st", PST_COLOR[P.status] || "var(--st-spec)");
-  renderTabs([["overview", "Обзор продукта"]]);
+  const tabs = [["overview", "Обзор продукта"]];
+  if (PLAN.length) tabs.push(["plan", "План разработки", PLAN.length]);
+  renderTabs(tabs);
   dBody.innerHTML = "";
+  if (tab === "plan") { renderPlanTab(); return; }
 
   if (P.tagline) sub(dBody, "p", "lead", P.tagline);
 
@@ -932,6 +1041,12 @@ function renderProductOverview() {
   row("Карта обновлена", (P.updated || "—") + (P.updated_by ? " · " + P.updated_by : ""));
   const total = MODULES.length, ok = MODULES.filter(m => m.verified !== false).length;
   row("Подтверждено", `${ok} из ${total} модулей`);
+  if (PLAN.length) {
+    const act = PLAN.filter(p => p.state !== "dropped");
+    row("План разработки", `${act.filter(p => p.state === "done").length} из ${act.length} сделано`);
+  }
+  const drifted = MODULES.filter(m => m.drift).length;
+  if (drifted) row("Дрейф ⚠", `${drifted} модул${drifted === 1 ? "ь расходится" : "я расходятся"} с замыслом`);
 
   if ((P.repos || []).length) {
     const s2 = sub(dBody, "div", "sect");
@@ -957,9 +1072,10 @@ function renderProductOverview() {
   const s4 = sub(dBody, "div", "sect");
   sub(s4, "h4", null, "Как читать схему");
   const d = sub(s4, "p", "details",
+    "Схема показывает ФАКТ — реальное состояние кода; замысел каждого модуля лежит рядом, во вкладке «Замысел».\n" +
     "Конвейер идёт слева направо; пунктирные медные стрелки — условные переходы.\n" +
     "Нижняя полоса — служебные модули: они вне конвейера, точечные линии показывают, кто ими пользуется.\n" +
-    "Знак «?» — гипотеза агента, ждёт вашего подтверждения.\n" +
+    "Знак «?» — гипотеза агента, ждёт вашего подтверждения; знак «⚠» — код разошёлся с замыслом.\n" +
     "Клик по блоку — его свойства; переменные с полем ввода можно менять и отправить агенту одним заданием.");
   d.style.maxWidth = "none";
 }
@@ -986,6 +1102,7 @@ function renderModule(m) {
 
   renderTabs([
     ["overview", "Обзор"],
+    ["spec", "Замысел"],
     ["files", "Файлы", files.length + sharedMine.length],
     ["vars", "Переменные", vars.length],
     ["links", "Связи", nLinks],
@@ -996,14 +1113,46 @@ function renderModule(m) {
     if (m.summary) sub(dBody, "p", "lead", m.summary);
     if (m.details) {
       const s = sub(dBody, "div", "sect");
-      sub(s, "h4", null, "Что делает");
+      sub(s, "h4", null, "Что делает (факт)");
       sub(s, "p", "details", m.details.trim());
+    }
+    if (m.drift) {
+      const s = sub(dBody, "div", "sect");
+      sub(s, "h4", null, "Расхождение с замыслом");
+      sub(s, "div", "warn-card", m.drift);
+    }
+    const inPlan = PLAN.filter(p => (p.modules || []).includes(m.id));
+    if (inPlan.length) {
+      const s = sub(dBody, "div", "sect");
+      sub(s, "h4", null, "В плане разработки");
+      inPlan.forEach(p => {
+        const r = sub(s, "div", "plan-mini");
+        planIco(r, p.state);
+        sub(r, "span", null, p.title);
+        sub(r, "span", "p-state", (PLAN_STATE[p.state] || PLAN_STATE.todo)[1]);
+      });
     }
     if (m.verified === false) {
       const s = sub(dBody, "div", "sect");
       sub(s, "h4", null, "Подтверждение");
       sub(s, "p", "details", "Описание реконструировано агентом и может расходиться с реальностью. Подтвердить или поправить блок может только владелец — скажите агенту, что здесь верно, а что нет, и знак «?» будет снят.");
     }
+  }
+
+  if (tab === "spec") {
+    if (m.spec) {
+      const s = sub(dBody, "div", "sect");
+      sub(s, "h4", null, "Историческая спецификация");
+      sub(s, "p", "details", m.spec.trim());
+    } else {
+      sub(dBody, "p", "empty-note", "Замысел модуля не записан.");
+    }
+    if (m.drift) {
+      const s = sub(dBody, "div", "sect");
+      sub(s, "h4", null, "Расхождение с замыслом");
+      sub(s, "div", "warn-card", m.drift);
+    }
+    sub(dBody, "div", "spec-note", "Замысел фиксируется на этапе спецификации и не переписывается под реальность. Текущее состояние — во вкладке «Обзор»; расхождения помечаются дрейфом ⚠ и решаются владельцем: чинить код или менять замысел.");
   }
 
   if (tab === "files") {
@@ -1088,12 +1237,13 @@ function renderSharedDrawer() {
 function renderDrawer() {
   const narrow = window.matchMedia("(max-width: 880px)").matches;
   if (!selected) {
-    tab = "overview";
-    if (narrow) { drawer.classList.add("closed"); return; }
+    if (tab !== "plan") tab = "overview";
+    if (narrow && tab !== "plan") { drawer.classList.add("closed"); return; }
     drawer.classList.remove("closed");
     renderProductOverview();
     return;
   }
+  if (tab === "plan") tab = "overview";
   drawer.classList.remove("closed");
   if (selected === "__shared") { renderSharedDrawer(); return; }
   renderModule(byId[selected]);
@@ -1126,7 +1276,17 @@ function renderChrome() {
     i.style.background = `var(--st-${k})`;
     sub(d, "span", null, t);
   });
-  const r5 = sub(lg, "div", "lg-row"); sub(r5, "span", null, "? — гипотеза агента, не подтверждено");
+  const r5 = sub(lg, "div", "lg-row"); sub(r5, "span", null, "? — гипотеза агента · ⚠ — дрейф от замысла");
+
+  if (PLAN.length) {
+    const act = PLAN.filter(p => p.state !== "dropped");
+    const done = act.filter(p => p.state === "done").length;
+    const chip = document.getElementById("plan-chip");
+    chip.hidden = false;
+    chip.querySelector(".bar i").style.width = act.length ? Math.round(done / act.length * 100) + "%" : "0%";
+    document.getElementById("plan-txt").textContent = `план ${done}/${act.length}`;
+    chip.addEventListener("click", () => { tab = "plan"; select(null); });
+  }
 }
 
 /* ==================== старт ==================== */
@@ -1134,7 +1294,7 @@ renderWorld();
 renderChrome();
 renderDraftBar();
 const tab0 = qs.get("tab");
-if (["overview", "files", "vars", "links"].includes(tab0)) tab = tab0;
+if (["overview", "spec", "files", "vars", "links", "plan"].includes(tab0)) tab = tab0;
 const sel0 = qs.get("select");
 if (sel0 && (byId[sel0] || sel0 === "__shared")) select(sel0);
 else renderDrawer();
