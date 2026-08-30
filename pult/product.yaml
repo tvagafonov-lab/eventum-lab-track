@@ -1,0 +1,378 @@
+# ============================================================
+# ПУЛЬТ · карта продукта (манифест v1)
+# Единственный источник правды для панели pult/panel.html.
+# Агент ОБЯЗАН читать этот файл перед работой над продуктом
+# и обновлять его после любого значимого изменения кода.
+# Спецификация полей: pult/SCHEMA.md
+# ============================================================
+pult: 1
+
+product:
+  name: "Eventum Lab"
+  codename: eventum-lab
+  tagline: "Автоматическая event-driven система: сигналы публикуются до исхода, каждый получает фоллоу-ап, результат — в публичном track record"
+  status: live            # spec | build | live | frozen
+  owner: tvagafonov
+  updated: "2026-08-30"
+  updated_by: agent
+  docs:
+    product: PRODUCT.md
+    changelog: CHANGELOG.md
+  repos:
+    - id: track
+      url: "https://github.com/tvagafonov-lab/eventum-lab-track"
+      note: "Публичная витрина track record (GitHub Pages) + data/track.json"
+      verified: true
+    - id: core
+      note: "Репозиторий движка (радар, аналитик, публикация, оценка). Название и расположение не подтверждены — карта построена по витрине."
+      verified: false
+
+# ------------------------------------------------------------
+# Модули. kind: pipeline — участвует в конвейере;
+#          service  — служебный (нижняя полоса панели).
+# verified: false — модуль реконструирован агентом по косвенным
+# признакам и ждёт подтверждения владельцем.
+# ------------------------------------------------------------
+modules:
+  - id: radar
+    title: "Радар событий"
+    icon: "📡"
+    kind: pipeline
+    status: ready
+    verified: false
+    summary: "Мониторит источники событий и отбирает кандидатов для анализа"
+    details: |
+      Периодически опрашивает источники (новости, корпоративные календари,
+      анонсы) и превращает сырые упоминания в события-кандидаты единого
+      формата. Отфильтровывает шум до передачи аналитику.
+
+      Реконструировано по описанию продукта («automated event-driven
+      research system»); состав источников не подтверждён.
+    files:
+      - { repo: core, path: "src/radar/", role: owner, verified: false }
+    variables:
+      - key: POLL_MINUTES
+        title: "Период опроса источников"
+        type: number
+        value: 15
+        edit: panel
+        location: "core:config/settings.yaml"
+        hint: "Как часто радар обходит источники, в минутах"
+        verified: false
+      - key: SOURCES
+        title: "Список источников"
+        type: string
+        value: "см. конфиг"
+        edit: code
+        location: "core:src/radar/sources.py"
+        hint: "Добавление источника требует парсера — только через код"
+        verified: false
+
+  - id: analyst
+    title: "Аналитик"
+    icon: "🧠"
+    kind: pipeline
+    status: ready
+    verified: false
+    summary: "Оценивает событие: направление LONG/SHORT, уверенность, окно выхода"
+    details: |
+      Принимает событие-кандидат и выносит решение: торгуемо ли оно,
+      в какую сторону (LONG/SHORT), с какой уверенностью (confidence_label
+      виден в витрине) и с каким окном выхода (exit_window).
+      Сигналы ниже порога уверенности отбрасываются и не публикуются.
+    files:
+      - { repo: core, path: "src/analyst/", role: owner, verified: false }
+    variables:
+      - key: MIN_CONFIDENCE
+        title: "Порог публикации"
+        type: number
+        value: 0.65
+        edit: panel
+        location: "core:config/settings.yaml"
+        hint: "Ниже порога сигнал отбрасывается до публикации"
+        verified: false
+      - key: EXIT_WINDOWS
+        title: "Допустимые окна выхода"
+        type: string
+        value: "1d, 3d, 1w"
+        edit: panel
+        location: "core:config/settings.yaml"
+        hint: "Набор окон, из которых аналитик выбирает exit_window"
+        verified: false
+      - key: DECISION_LOGIC
+        title: "Логика принятия решения"
+        type: string
+        value: "модель/правила"
+        edit: code
+        location: "core:src/analyst/"
+        hint: "Ядро системы — меняется только через код и бэктест"
+        verified: false
+
+  - id: publisher
+    title: "Публикатор сигналов"
+    icon: "📣"
+    kind: pipeline
+    status: ready
+    verified: false
+    summary: "Постит сигнал в канал до того, как исход известен; фиксирует permalink и номер"
+    details: |
+      Оформляет решение аналитика в пост и публикует в Telegram-канал
+      @eventum_lab. Ключевой принцип честности продукта: публикация
+      строго ДО исхода. Сохраняет seq, signal_permalink и время
+      публикации — они попадают в track.json и витрину.
+    files:
+      - { repo: core, path: "src/publisher/", role: owner, verified: false }
+    variables:
+      - key: CHANNEL
+        title: "Канал публикации"
+        type: string
+        value: "@eventum_lab"
+        edit: code
+        location: "core:config/settings.yaml"
+        hint: "Смена канала — публичное действие, только осознанно через код"
+        verified: true
+      - key: POST_TEMPLATE
+        title: "Шаблон поста"
+        type: string
+        value: "шаблон"
+        edit: code
+        location: "core:src/publisher/template.py"
+        verified: false
+
+  - id: followup
+    title: "Автофоллоу-ап"
+    icon: "🔁"
+    kind: pipeline
+    status: ready
+    verified: false
+    summary: "Каждый сигнал получает автоматический пост-продолжение"
+    details: |
+      По расписанию публикует продолжение к каждому сигналу
+      («Every signal receives an automatic follow-up» — обещание с витрины).
+      Сохраняет followup_permalink, который витрина показывает стрелкой «→».
+    files:
+      - { repo: core, path: "src/followup/", role: owner, verified: false }
+    variables:
+      - key: FOLLOWUP_DELAY_H
+        title: "Задержка фоллоу-апа"
+        type: number
+        value: 24
+        edit: panel
+        location: "core:config/settings.yaml"
+        hint: "Через сколько часов после сигнала выходит продолжение"
+        verified: false
+
+  - id: referee
+    title: "Оценщик исходов"
+    icon: "⚖️"
+    kind: pipeline
+    status: ready
+    verified: false
+    summary: "Закрывает сигнал по окну выхода: win/loss/flat и чистая доходность"
+    details: |
+      Когда exit_window истекает, берёт рыночные цены, считает результат
+      сигнала с учётом издержек (net_return_pct) и присваивает исход:
+      win / loss / flat. До этого сигнал висит в статусе open.
+    files:
+      - { repo: core, path: "src/referee/", role: owner, verified: false }
+    variables:
+      - key: FEES_PCT
+        title: "Издержки на сделку"
+        type: number
+        value: 0.1
+        edit: panel
+        location: "core:config/settings.yaml"
+        hint: "Процент издержек, вычитаемый при расчёте net return"
+        verified: false
+      - key: FLAT_BAND_PCT
+        title: "Полоса flat-исхода"
+        type: number
+        value: 0.2
+        edit: panel
+        location: "core:config/settings.yaml"
+        hint: "Результат внутри ±полосы считается flat, не win/loss"
+        verified: false
+
+  - id: ledger
+    title: "Учёт результатов"
+    icon: "📊"
+    kind: pipeline
+    status: ready
+    verified: false
+    summary: "Считает агрегаты и equity curve, собирает и публикует track.json"
+    details: |
+      Раз в сутки собирает все сигналы: hit rate, средний и накопленный
+      net return, максимальную просадку, Sharpe (только при ≥30 закрытых —
+      порог виден в коде витрины). Формирует data/track.json и пушит его
+      в репозиторий витрины. По истории коммитов — ежедневно в 00:30–02:00 UTC,
+      сообщение «update track.json [дата]».
+    files:
+      - { repo: core, path: "src/ledger/", role: owner, verified: false }
+      - { repo: track, path: "data/track.json", role: owner, verified: true }
+    variables:
+      - key: UPDATE_CRON
+        title: "Расписание обновления"
+        type: string
+        value: "0 1 * * *"
+        edit: panel
+        location: "core:config/settings.yaml"
+        hint: "Фактические коммиты ложатся в 00:30–02:00 UTC ежедневно"
+        verified: false
+      - key: MIN_CLOSED_FOR_SHARPE
+        title: "Минимум закрытых для Sharpe"
+        type: number
+        value: 30
+        edit: panel
+        location: "track:index.html"
+        hint: "Витрина показывает «n/a (need ≥30)», пока закрытых меньше"
+        verified: true
+
+  - id: showcase
+    title: "Витрина"
+    icon: "🌐"
+    kind: pipeline
+    status: ready
+    verified: true
+    summary: "Публичная страница track record: карточки метрик, equity curve, таблица сигналов"
+    details: |
+      Статическая страница на GitHub Pages (этот репозиторий). Читает
+      data/track.json, показывает карточки агрегатов, equity curve
+      (Chart.js) и таблицу последних сигналов с фильтрами по символу,
+      исходу и направлению. Дисклеймер и ссылка на канал — в шапке.
+    files:
+      - { repo: track, path: "index.html", role: owner, verified: true }
+      - { repo: track, path: "data/track.json", role: reads, verified: true }
+    variables:
+      - key: ROWS_LIMIT
+        title: "Строк в таблице"
+        type: number
+        value: 30
+        edit: panel
+        location: "track:index.html"
+        hint: "Сколько последних сигналов показывает таблица"
+        verified: true
+      - key: SHARPE_HINT_THRESHOLD
+        title: "Порог подсказки Sharpe"
+        type: number
+        value: 30
+        edit: code
+        location: "track:index.html"
+        hint: "Дублирует MIN_CLOSED_FOR_SHARPE — кандидат на общий конфиг"
+        verified: true
+
+  # ---------------- служебные модули ----------------
+
+  - id: telegram
+    title: "Telegram"
+    icon: "💬"
+    kind: service
+    status: ready
+    verified: true
+    summary: "Канал @eventum_lab — точка публикации сигналов и фоллоу-апов"
+    details: |
+      Служебный модуль-обёртка над Telegram Bot API. Не участвует
+      в конвейере напрямую: им пользуются публикатор и фоллоу-ап.
+    files:
+      - { repo: core, path: "src/services/telegram.py", role: owner, verified: false }
+    variables:
+      - key: BOT_TOKEN
+        title: "Токен бота"
+        type: string
+        value: "•••"
+        edit: code
+        location: "core:.env"
+        hint: "Секрет — никогда не выводится в панель"
+        verified: false
+
+  - id: market
+    title: "Рыночные данные"
+    icon: "📈"
+    kind: service
+    status: ready
+    verified: false
+    summary: "Котировки для расчёта исходов и доходности"
+    details: |
+      Источник цен (API котировок). Используется оценщиком исходов;
+      возможно, аналитиком для контекста. Провайдер не подтверждён.
+    files:
+      - { repo: core, path: "src/services/market.py", role: owner, verified: false }
+    variables:
+      - key: PROVIDER
+        title: "Провайдер котировок"
+        type: string
+        value: "не подтверждён"
+        edit: code
+        location: "core:src/services/market.py"
+        verified: false
+
+  - id: cron
+    title: "Планировщик"
+    icon: "⏰"
+    kind: service
+    status: ready
+    verified: false
+    summary: "Запускает радар, фоллоу-апы и ежедневный учёт по расписанию"
+    details: |
+      Служебный модуль расписаний. Ежедневный запуск учёта виден
+      по истории коммитов витрины (00:30–02:00 UTC).
+    files:
+      - { repo: core, path: "src/services/scheduler.py", role: owner, verified: false }
+    variables: []
+
+  - id: git-push
+    title: "GitHub-публикация"
+    icon: "🗃️"
+    kind: service
+    status: ready
+    verified: true
+    summary: "Коммитит и пушит track.json в репозиторий витрины"
+    details: |
+      Технический мост между движком и витриной: ежедневный коммит
+      «update track.json [дата UTC]» в tvagafonov-lab/eventum-lab-track.
+    files:
+      - { repo: core, path: "src/services/gitpush.py", role: owner, verified: false }
+    variables: []
+
+# ------------------------------------------------------------
+# Поток конвейера (стрелки слева направо).
+# when — условие на ребре (рисуется пунктиром с подписью).
+# ------------------------------------------------------------
+flows:
+  - { from: radar, to: analyst, label: "событие-кандидат" }
+  - { from: analyst, to: publisher, label: "сигнал", when: "уверенность ≥ MIN_CONFIDENCE" }
+  - { from: publisher, to: followup, when: "наступил срок фоллоу-апа" }
+  - { from: publisher, to: referee, when: "истекло окно выхода" }
+  - { from: referee, to: ledger, label: "закрытый сигнал" }
+  - { from: ledger, to: showcase, label: "track.json" }
+
+# ------------------------------------------------------------
+# Использование служебных модулей (пунктирные связи вниз).
+# ------------------------------------------------------------
+uses:
+  - { module: radar, service: cron, note: "периодический запуск" }
+  - { module: publisher, service: telegram, note: "публикация сигнала" }
+  - { module: followup, service: telegram, note: "публикация фоллоу-апа" }
+  - { module: followup, service: cron, note: "проверка сроков" }
+  - { module: referee, service: market, note: "цены для расчёта исхода" }
+  - { module: ledger, service: cron, note: "ежедневный запуск" }
+  - { module: ledger, service: git-push, note: "доставка track.json в витрину" }
+
+# ------------------------------------------------------------
+# Общие файлы — принадлежат не одному модулю, а всем.
+# ------------------------------------------------------------
+shared:
+  - repo: core
+    path: "src/common/signal.py"
+    note: "Схема сигнала — единый формат данных между всеми модулями"
+    used_by: [radar, analyst, publisher, followup, referee, ledger]
+    verified: false
+  - repo: core
+    path: "config/settings.yaml"
+    note: "Общий конфиг: пороги, расписания, издержки"
+    used_by: [radar, analyst, followup, referee, ledger]
+    verified: false
+  - repo: track
+    path: "data/track.json"
+    note: "Интерфейсный файл: пишет учёт, читает витрина"
+    used_by: [ledger, showcase]
+    verified: true

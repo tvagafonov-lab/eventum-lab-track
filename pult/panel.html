@@ -1,0 +1,1145 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Пульт Eventum Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Unbounded:wght@600&display=swap">
+<style>
+/* ============ ПУЛЬТ · панель управления продуктом ============ */
+/* Светлая тема — базовые токены */
+:root {
+  --bg: #EDF0EE;
+  --surface: #F8FAF8;
+  --surface2: #F0F3F0;
+  --ink: #1B2320;
+  --muted: #5F6A64;
+  --faint: #97A19A;
+  --line: #D6DDD7;
+  --line-strong: #BAC4BD;
+  --dot: #C6D0C9;
+  --accent: #B4632A;
+  --accent-ink: #8F4C1D;
+  --accent-soft: rgba(180, 99, 42, .12);
+  --st-spec: #75808A;
+  --st-build: #3E7CA6;
+  --st-ready: #2F8A5D;
+  --st-debug: #BA4A40;
+  --st-off: #8B958F;
+  --edge: #93A099;
+  --edge-uses: #A9B4AD;
+  --ok: #2F8A5D;
+  --shadow: 0 1px 2px rgba(27,35,32,.07), 0 6px 18px rgba(27,35,32,.07);
+  --shadow-lift: 0 2px 4px rgba(27,35,32,.10), 0 10px 26px rgba(27,35,32,.12);
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131715;
+    --surface: #1C221F;
+    --surface2: #232A26;
+    --ink: #E7ECE8;
+    --muted: #9DA8A1;
+    --faint: #6E7A73;
+    --line: #2C342F;
+    --line-strong: #3D4741;
+    --dot: #242C27;
+    --accent: #DB9152;
+    --accent-ink: #E7A76F;
+    --accent-soft: rgba(219, 145, 82, .16);
+    --st-spec: #8B96A0;
+    --st-build: #5FA0CC;
+    --st-ready: #4AA97A;
+    --st-debug: #D2685E;
+    --st-off: #77827B;
+    --edge: #5F6B64;
+    --edge-uses: #49554E;
+    --ok: #4AA97A;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 6px 18px rgba(0,0,0,.35);
+    --shadow-lift: 0 2px 4px rgba(0,0,0,.45), 0 10px 26px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131715;
+  --surface: #1C221F;
+  --surface2: #232A26;
+  --ink: #E7ECE8;
+  --muted: #9DA8A1;
+  --faint: #6E7A73;
+  --line: #2C342F;
+  --line-strong: #3D4741;
+  --dot: #242C27;
+  --accent: #DB9152;
+  --accent-ink: #E7A76F;
+  --accent-soft: rgba(219, 145, 82, .16);
+  --st-spec: #8B96A0;
+  --st-build: #5FA0CC;
+  --st-ready: #4AA97A;
+  --st-debug: #D2685E;
+  --st-off: #77827B;
+  --edge: #5F6B64;
+  --edge-uses: #49554E;
+  --ok: #4AA97A;
+  --shadow: 0 1px 2px rgba(0,0,0,.35), 0 6px 18px rgba(0,0,0,.35);
+  --shadow-lift: 0 2px 4px rgba(0,0,0,.45), 0 10px 26px rgba(0,0,0,.5);
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  overflow: hidden;
+}
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+#app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+
+/* ---------- шапка ---------- */
+#topbar {
+  display: flex; align-items: center; gap: 14px;
+  height: 52px; padding: 0 14px; flex: none;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.wordmark {
+  font-family: "Unbounded", "Golos Text", sans-serif;
+  font-size: 11px; font-weight: 600; letter-spacing: .22em;
+  color: var(--accent); white-space: nowrap; user-select: none;
+}
+.tb-sep { width: 1px; height: 22px; background: var(--line-strong); flex: none; }
+#product-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#map-meta { color: var(--faint); font-size: 12px; white-space: nowrap; }
+#topbar .spacer { flex: 1; }
+.tb-docs { display: flex; gap: 6px; }
+.doc-chip {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 6px;
+  padding: 3px 8px; background: var(--surface2); white-space: nowrap;
+}
+.zoomer { display: flex; align-items: center; gap: 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface2); padding: 2px; }
+.zoomer button {
+  width: 26px; height: 26px; border-radius: 6px; display: grid; place-items: center;
+  color: var(--muted); font-size: 15px; line-height: 1;
+}
+.zoomer button:hover { background: var(--accent-soft); color: var(--accent-ink); }
+#zoom-pct { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; color: var(--muted); min-width: 40px; text-align: center; font-variant-numeric: tabular-nums; }
+
+/* ---------- корпус ---------- */
+#main { display: flex; flex: 1; min-height: 0; }
+#viewport {
+  position: relative; flex: 1; min-width: 0; overflow: hidden;
+  cursor: grab; touch-action: none;
+}
+#viewport.panning { cursor: grabbing; }
+#world {
+  position: absolute; left: 0; top: 0; transform-origin: 0 0;
+  background-image: radial-gradient(var(--dot) 1.2px, transparent 1.3px);
+  background-size: 24px 24px;
+}
+#edges { position: absolute; left: 0; top: 0; overflow: visible; }
+#edges path.edge { fill: none; stroke: var(--edge); stroke-width: 2; }
+#edges path.edge.cond { stroke: var(--accent); stroke-dasharray: 7 5; }
+#edges path.edge.uses { stroke: var(--edge-uses); stroke-width: 2; stroke-dasharray: 2 6; stroke-linecap: round; }
+#edges path.edge.dim { opacity: .16; }
+#edges path.edge.hot { stroke-width: 2.6; }
+#edges path.edge.hot:not(.cond):not(.uses) { stroke: var(--muted); }
+#edges marker path { fill: var(--edge); }
+#edges marker.mk-cond path { fill: var(--accent); }
+@media (prefers-reduced-motion: no-preference) {
+  #edges path.edge.hot.cond { animation: dashflow 1.2s linear infinite; }
+  @keyframes dashflow { to { stroke-dashoffset: -24; } }
+}
+
+.edge-label {
+  position: absolute; transform: translate(-50%, -130%);
+  max-width: 190px; padding: 2px 8px;
+  font-size: 11px; line-height: 1.3; text-align: center;
+  color: var(--muted); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 999px;
+  pointer-events: none; box-shadow: var(--shadow);
+}
+.edge-label.cond { color: var(--accent-ink); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.edge-label.dim { opacity: .15; }
+
+/* ---------- узлы ---------- */
+.node {
+  position: absolute; width: 216px; height: 92px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-left: 3px solid var(--st, var(--line-strong));
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 10px 12px 9px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  cursor: pointer; user-select: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .node { transition: box-shadow .15s ease, opacity .15s ease, border-color .15s ease; }
+}
+.node:hover { box-shadow: var(--shadow-lift); }
+.node.selected { border-color: var(--accent); border-left-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow-lift); }
+.node.dim { opacity: .42; }
+.node .n-head { display: flex; gap: 8px; align-items: flex-start; min-height: 0; }
+.node .n-icon { font-size: 19px; line-height: 1.2; flex: none; }
+.node .n-title { font-weight: 600; font-size: 13.5px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.node .n-foot { display: flex; align-items: center; gap: 6px; }
+.node .n-foot .gap { flex: 1; }
+.st-chip {
+  font-size: 10.5px; font-weight: 600; letter-spacing: .02em;
+  padding: 1.5px 7px; border-radius: 999px; white-space: nowrap;
+  color: var(--st, var(--muted));
+  background: color-mix(in srgb, var(--st, var(--muted)) 13%, transparent);
+}
+.mini-chip {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px; color: var(--faint); white-space: nowrap;
+}
+.q-mark {
+  position: absolute; top: -8px; right: -8px;
+  width: 19px; height: 19px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 11.5px; font-weight: 700; color: var(--accent-ink);
+  background: var(--surface); border: 1.5px solid var(--accent);
+  box-shadow: var(--shadow);
+}
+.port { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); border: 1.5px solid var(--line-strong); }
+.port.in { left: -5px; top: 50%; margin-top: -5px; }
+.port.out { right: -5px; top: 50%; margin-top: -5px; }
+.port.top { top: -5px; left: 50%; margin-left: -5px; }
+
+.node.service {
+  width: 184px; height: 80px;
+  border-style: dashed; border-left-style: solid;
+  background: var(--surface2); border-radius: 14px;
+}
+.node.shared-block {
+  width: 216px; height: 80px;
+  background: var(--surface2); border: 1px solid var(--line-strong); border-left: 3px solid var(--faint);
+  border-radius: 14px;
+}
+.lane-label {
+  position: absolute; font-size: 10.5px; font-weight: 600; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--faint); white-space: nowrap;
+}
+.lane-rule { position: absolute; border-top: 1px dashed var(--line-strong); }
+
+/* ---------- легенда ---------- */
+#legend {
+  position: absolute; left: 14px; bottom: 14px; z-index: 5;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 9px 12px; font-size: 11px; color: var(--muted);
+  display: grid; gap: 5px; box-shadow: var(--shadow);
+}
+#legend .lg-row { display: flex; align-items: center; gap: 7px; }
+.lg-line { width: 26px; height: 0; border-top: 2px solid var(--edge); flex: none; }
+.lg-line.cond { border-top: 2px dashed var(--accent); }
+.lg-line.uses { border-top: 2px dotted var(--edge-uses); }
+.lg-dots { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+.lg-dot { display: inline-flex; align-items: center; gap: 3px; }
+.lg-dot i { width: 8px; height: 8px; border-radius: 50%; background: var(--st); display: inline-block; }
+
+/* ---------- панель свойств ---------- */
+#drawer {
+  width: 384px; flex: none; min-height: 0;
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+  display: flex; flex-direction: column;
+}
+#drawer-head { padding: 16px 18px 0; }
+#drawer-head .d-toprow { display: flex; align-items: flex-start; gap: 10px; }
+#d-icon { font-size: 26px; line-height: 1.15; }
+#d-title { font-size: 17px; font-weight: 700; line-height: 1.25; text-wrap: balance; }
+#d-sub { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+.kind-tag { font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; }
+.v-badge { font-size: 11px; font-weight: 600; padding: 1.5px 8px; border-radius: 999px; }
+.v-badge.ok { color: var(--ok); background: color-mix(in srgb, var(--ok) 13%, transparent); }
+.v-badge.q { color: var(--accent-ink); background: var(--accent-soft); }
+#tabs { display: flex; gap: 2px; margin-top: 14px; border-bottom: 1px solid var(--line); }
+#tabs button {
+  padding: 7px 11px 8px; font-size: 12.5px; font-weight: 500; color: var(--muted);
+  border-bottom: 2px solid transparent; margin-bottom: -1px; border-radius: 6px 6px 0 0;
+}
+#tabs button:hover { color: var(--ink); background: var(--surface2); }
+#tabs button.on { color: var(--accent-ink); border-bottom-color: var(--accent); font-weight: 600; }
+#tabs .cnt { font-size: 10px; color: var(--faint); margin-left: 3px; font-variant-numeric: tabular-nums; }
+#drawer-body { flex: 1; overflow-y: auto; padding: 14px 18px 20px; min-height: 0; }
+
+.sect { margin: 0 0 16px; }
+.sect h4 {
+  margin: 0 0 8px; font-size: 10.5px; font-weight: 600; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--faint);
+}
+.lead { font-size: 13.5px; font-weight: 500; margin: 0 0 10px; }
+.details { font-size: 13px; color: var(--muted); white-space: pre-line; margin: 0; max-width: 62ch; }
+.meta-grid { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; font-size: 12.5px; }
+.meta-grid dt { color: var(--faint); }
+.meta-grid dd { margin: 0; }
+
+.file-row {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; padding: 6px 0;
+  border-bottom: 1px dashed var(--line); font-size: 12px;
+}
+.file-row:last-child { border-bottom: 0; }
+.file-path { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11.5px; min-width: 0; overflow-wrap: anywhere; }
+.file-path .repo { color: var(--faint); }
+.role-tag { font-size: 10px; font-weight: 600; color: var(--muted); border: 1px solid var(--line-strong); border-radius: 4px; padding: 0 5px; white-space: nowrap; flex: none; }
+.role-tag.owner { color: var(--accent-ink); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.q-inline { color: var(--accent-ink); font-weight: 700; flex: none; }
+.file-note { color: var(--faint); font-size: 11px; flex: 1 1 100%; margin-left: 0; }
+
+.var-card { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; background: var(--surface2); }
+.var-card.editable { background: var(--surface); }
+.var-head { display: flex; align-items: baseline; gap: 8px; }
+.var-title { font-weight: 600; font-size: 13px; }
+.var-key { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 10.5px; color: var(--faint); }
+.var-lock { margin-left: auto; font-size: 12px; color: var(--faint); flex: none; }
+.var-ctrl { margin-top: 8px; display: flex; align-items: center; gap: 8px; }
+.var-ctrl input[type="text"], .var-ctrl input[type="number"], .var-ctrl select {
+  width: 100%; padding: 6px 9px; font: 12.5px "IBM Plex Mono", ui-monospace, monospace;
+  color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line-strong); border-radius: 7px;
+}
+.var-ctrl input:focus, .var-ctrl select:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; }
+.var-ctrl .chg { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
+.var-value { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12.5px; margin-top: 7px; color: var(--muted); }
+.var-hint { font-size: 11.5px; color: var(--faint); margin-top: 7px; }
+.var-loc { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 10.5px; color: var(--faint); margin-top: 5px; word-break: break-all; }
+.var-was { font-size: 11px; color: var(--accent-ink); margin-top: 5px; }
+
+.link-row {
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+  padding: 7px 9px; border: 1px solid var(--line); border-radius: 9px; margin-bottom: 7px;
+  background: var(--surface2); font-size: 12.5px;
+}
+.link-row:hover { border-color: var(--accent); background: var(--accent-soft); }
+.link-row .arr { color: var(--faint); flex: none; }
+.link-row .who { font-weight: 600; white-space: nowrap; }
+.link-row .why { color: var(--muted); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.empty-note { color: var(--faint); font-size: 12.5px; }
+
+/* ---------- черновик изменений ---------- */
+#draftbar {
+  position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 6;
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--accent);
+  border-radius: 999px; padding: 7px 9px 7px 16px;
+  box-shadow: var(--shadow-lift); font-size: 12.5px; white-space: nowrap;
+}
+#draftbar .d-count { font-weight: 600; color: var(--accent-ink); }
+#draftbar button { border-radius: 999px; padding: 5px 12px; font-size: 12.5px; font-weight: 600; }
+#btn-copy-task { background: var(--accent); color: #FFF6EE; }
+#btn-copy-task:hover { filter: brightness(1.06); }
+#btn-drop-draft { color: var(--muted); }
+#btn-drop-draft:hover { background: var(--surface2); }
+
+#toast {
+  position: absolute; left: 50%; bottom: 72px; transform: translateX(-50%); z-index: 7;
+  background: var(--ink); color: var(--bg); font-size: 12.5px;
+  padding: 8px 14px; border-radius: 8px; box-shadow: var(--shadow-lift);
+}
+
+/* ---------- узкие экраны ---------- */
+#drawer-close { display: none; margin-left: auto; color: var(--muted); font-size: 18px; width: 30px; height: 30px; border-radius: 8px; }
+#drawer-close:hover { background: var(--surface2); }
+@media (max-width: 880px) {
+  #drawer {
+    position: absolute; right: 0; top: 52px; bottom: 0; width: min(400px, 94vw);
+    box-shadow: var(--shadow-lift); z-index: 8;
+  }
+  #drawer.closed { display: none; }
+  #drawer-close { display: grid; place-items: center; }
+  #legend, .tb-docs, #map-meta { display: none; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <span class="wordmark">ПУЛЬТ</span>
+    <span class="tb-sep"></span>
+    <span id="product-name"></span>
+    <span class="st-chip" id="product-status"></span>
+    <span id="map-meta"></span>
+    <span class="spacer"></span>
+    <nav class="tb-docs" id="doc-chips" aria-label="Документы продукта"></nav>
+    <div class="zoomer" role="group" aria-label="Масштаб">
+      <button id="z-out" title="Отдалить" aria-label="Отдалить">−</button>
+      <span id="zoom-pct">100%</span>
+      <button id="z-in" title="Приблизить" aria-label="Приблизить">+</button>
+      <button id="z-fit" title="Вписать схему" aria-label="Вписать схему">⤢</button>
+    </div>
+  </header>
+
+  <div id="main">
+    <div id="viewport">
+      <div id="world"></div>
+      <aside id="legend" aria-label="Легенда"></aside>
+      <div id="draftbar" hidden>
+        <span class="d-count" id="draft-count"></span>
+        <button id="btn-copy-task">Скопировать задание для агента</button>
+        <button id="btn-drop-draft">Сбросить</button>
+      </div>
+      <div id="toast" hidden></div>
+    </div>
+
+    <aside id="drawer" class="closed" aria-label="Свойства">
+      <div id="drawer-head">
+        <div class="d-toprow">
+          <span id="d-icon"></span>
+          <div style="min-width:0">
+            <div id="d-title"></div>
+            <div id="d-sub"></div>
+          </div>
+          <button id="drawer-close" aria-label="Закрыть свойства">✕</button>
+        </div>
+        <div id="tabs" role="tablist"></div>
+      </div>
+      <div id="drawer-body"></div>
+    </aside>
+  </div>
+</div>
+
+<!-- PULT:DATA:START -->
+<script type="application/json" id="pult-data">{"pult":1,"product":{"name":"Eventum Lab","codename":"eventum-lab","tagline":"Автоматическая event-driven система: сигналы публикуются до исхода, каждый получает фоллоу-ап, результат — в публичном track record","status":"live","owner":"tvagafonov","updated":"2026-08-30","updated_by":"agent","docs":{"product":"PRODUCT.md","changelog":"CHANGELOG.md"},"repos":[{"id":"track","url":"https://github.com/tvagafonov-lab/eventum-lab-track","note":"Публичная витрина track record (GitHub Pages) + data/track.json","verified":true},{"id":"core","note":"Репозиторий движка (радар, аналитик, публикация, оценка). Название и расположение не подтверждены — карта построена по витрине.","verified":false}]},"modules":[{"id":"radar","title":"Радар событий","icon":"📡","kind":"pipeline","status":"ready","verified":false,"summary":"Мониторит источники событий и отбирает кандидатов для анализа","details":"Периодически опрашивает источники (новости, корпоративные календари,\nанонсы) и превращает сырые упоминания в события-кандидаты единого\nформата. Отфильтровывает шум до передачи аналитику.\n\nРеконструировано по описанию продукта («automated event-driven\nresearch system»); состав источников не подтверждён.\n","files":[{"repo":"core","path":"src/radar/","role":"owner","verified":false}],"variables":[{"key":"POLL_MINUTES","title":"Период опроса источников","type":"number","value":15,"edit":"panel","location":"core:config/settings.yaml","hint":"Как часто радар обходит источники, в минутах","verified":false},{"key":"SOURCES","title":"Список источников","type":"string","value":"см. конфиг","edit":"code","location":"core:src/radar/sources.py","hint":"Добавление источника требует парсера — только через код","verified":false}]},{"id":"analyst","title":"Аналитик","icon":"🧠","kind":"pipeline","status":"ready","verified":false,"summary":"Оценивает событие: направление LONG/SHORT, уверенность, окно выхода","details":"Принимает событие-кандидат и выносит решение: торгуемо ли оно,\nв какую сторону (LONG/SHORT), с какой уверенностью (confidence_label\nвиден в витрине) и с каким окном выхода (exit_window).\nСигналы ниже порога уверенности отбрасываются и не публикуются.\n","files":[{"repo":"core","path":"src/analyst/","role":"owner","verified":false}],"variables":[{"key":"MIN_CONFIDENCE","title":"Порог публикации","type":"number","value":0.65,"edit":"panel","location":"core:config/settings.yaml","hint":"Ниже порога сигнал отбрасывается до публикации","verified":false},{"key":"EXIT_WINDOWS","title":"Допустимые окна выхода","type":"string","value":"1d, 3d, 1w","edit":"panel","location":"core:config/settings.yaml","hint":"Набор окон, из которых аналитик выбирает exit_window","verified":false},{"key":"DECISION_LOGIC","title":"Логика принятия решения","type":"string","value":"модель/правила","edit":"code","location":"core:src/analyst/","hint":"Ядро системы — меняется только через код и бэктест","verified":false}]},{"id":"publisher","title":"Публикатор сигналов","icon":"📣","kind":"pipeline","status":"ready","verified":false,"summary":"Постит сигнал в канал до того, как исход известен; фиксирует permalink и номер","details":"Оформляет решение аналитика в пост и публикует в Telegram-канал\n@eventum_lab. Ключевой принцип честности продукта: публикация\nстрого ДО исхода. Сохраняет seq, signal_permalink и время\nпубликации — они попадают в track.json и витрину.\n","files":[{"repo":"core","path":"src/publisher/","role":"owner","verified":false}],"variables":[{"key":"CHANNEL","title":"Канал публикации","type":"string","value":"@eventum_lab","edit":"code","location":"core:config/settings.yaml","hint":"Смена канала — публичное действие, только осознанно через код","verified":true},{"key":"POST_TEMPLATE","title":"Шаблон поста","type":"string","value":"шаблон","edit":"code","location":"core:src/publisher/template.py","verified":false}]},{"id":"followup","title":"Автофоллоу-ап","icon":"🔁","kind":"pipeline","status":"ready","verified":false,"summary":"Каждый сигнал получает автоматический пост-продолжение","details":"По расписанию публикует продолжение к каждому сигналу\n(«Every signal receives an automatic follow-up» — обещание с витрины).\nСохраняет followup_permalink, который витрина показывает стрелкой «→».\n","files":[{"repo":"core","path":"src/followup/","role":"owner","verified":false}],"variables":[{"key":"FOLLOWUP_DELAY_H","title":"Задержка фоллоу-апа","type":"number","value":24,"edit":"panel","location":"core:config/settings.yaml","hint":"Через сколько часов после сигнала выходит продолжение","verified":false}]},{"id":"referee","title":"Оценщик исходов","icon":"⚖️","kind":"pipeline","status":"ready","verified":false,"summary":"Закрывает сигнал по окну выхода: win/loss/flat и чистая доходность","details":"Когда exit_window истекает, берёт рыночные цены, считает результат\nсигнала с учётом издержек (net_return_pct) и присваивает исход:\nwin / loss / flat. До этого сигнал висит в статусе open.\n","files":[{"repo":"core","path":"src/referee/","role":"owner","verified":false}],"variables":[{"key":"FEES_PCT","title":"Издержки на сделку","type":"number","value":0.1,"edit":"panel","location":"core:config/settings.yaml","hint":"Процент издержек, вычитаемый при расчёте net return","verified":false},{"key":"FLAT_BAND_PCT","title":"Полоса flat-исхода","type":"number","value":0.2,"edit":"panel","location":"core:config/settings.yaml","hint":"Результат внутри ±полосы считается flat, не win/loss","verified":false}]},{"id":"ledger","title":"Учёт результатов","icon":"📊","kind":"pipeline","status":"ready","verified":false,"summary":"Считает агрегаты и equity curve, собирает и публикует track.json","details":"Раз в сутки собирает все сигналы: hit rate, средний и накопленный\nnet return, максимальную просадку, Sharpe (только при ≥30 закрытых —\nпорог виден в коде витрины). Формирует data/track.json и пушит его\nв репозиторий витрины. По истории коммитов — ежедневно в 00:30–02:00 UTC,\nсообщение «update track.json [дата]».\n","files":[{"repo":"core","path":"src/ledger/","role":"owner","verified":false},{"repo":"track","path":"data/track.json","role":"owner","verified":true}],"variables":[{"key":"UPDATE_CRON","title":"Расписание обновления","type":"string","value":"0 1 * * *","edit":"panel","location":"core:config/settings.yaml","hint":"Фактические коммиты ложатся в 00:30–02:00 UTC ежедневно","verified":false},{"key":"MIN_CLOSED_FOR_SHARPE","title":"Минимум закрытых для Sharpe","type":"number","value":30,"edit":"panel","location":"track:index.html","hint":"Витрина показывает «n/a (need ≥30)», пока закрытых меньше","verified":true}]},{"id":"showcase","title":"Витрина","icon":"🌐","kind":"pipeline","status":"ready","verified":true,"summary":"Публичная страница track record: карточки метрик, equity curve, таблица сигналов","details":"Статическая страница на GitHub Pages (этот репозиторий). Читает\ndata/track.json, показывает карточки агрегатов, equity curve\n(Chart.js) и таблицу последних сигналов с фильтрами по символу,\nисходу и направлению. Дисклеймер и ссылка на канал — в шапке.\n","files":[{"repo":"track","path":"index.html","role":"owner","verified":true},{"repo":"track","path":"data/track.json","role":"reads","verified":true}],"variables":[{"key":"ROWS_LIMIT","title":"Строк в таблице","type":"number","value":30,"edit":"panel","location":"track:index.html","hint":"Сколько последних сигналов показывает таблица","verified":true},{"key":"SHARPE_HINT_THRESHOLD","title":"Порог подсказки Sharpe","type":"number","value":30,"edit":"code","location":"track:index.html","hint":"Дублирует MIN_CLOSED_FOR_SHARPE — кандидат на общий конфиг","verified":true}]},{"id":"telegram","title":"Telegram","icon":"💬","kind":"service","status":"ready","verified":true,"summary":"Канал @eventum_lab — точка публикации сигналов и фоллоу-апов","details":"Служебный модуль-обёртка над Telegram Bot API. Не участвует\nв конвейере напрямую: им пользуются публикатор и фоллоу-ап.\n","files":[{"repo":"core","path":"src/services/telegram.py","role":"owner","verified":false}],"variables":[{"key":"BOT_TOKEN","title":"Токен бота","type":"string","value":"•••","edit":"code","location":"core:.env","hint":"Секрет — никогда не выводится в панель","verified":false}]},{"id":"market","title":"Рыночные данные","icon":"📈","kind":"service","status":"ready","verified":false,"summary":"Котировки для расчёта исходов и доходности","details":"Источник цен (API котировок). Используется оценщиком исходов;\nвозможно, аналитиком для контекста. Провайдер не подтверждён.\n","files":[{"repo":"core","path":"src/services/market.py","role":"owner","verified":false}],"variables":[{"key":"PROVIDER","title":"Провайдер котировок","type":"string","value":"не подтверждён","edit":"code","location":"core:src/services/market.py","verified":false}]},{"id":"cron","title":"Планировщик","icon":"⏰","kind":"service","status":"ready","verified":false,"summary":"Запускает радар, фоллоу-апы и ежедневный учёт по расписанию","details":"Служебный модуль расписаний. Ежедневный запуск учёта виден\nпо истории коммитов витрины (00:30–02:00 UTC).\n","files":[{"repo":"core","path":"src/services/scheduler.py","role":"owner","verified":false}],"variables":[]},{"id":"git-push","title":"GitHub-публикация","icon":"🗃️","kind":"service","status":"ready","verified":true,"summary":"Коммитит и пушит track.json в репозиторий витрины","details":"Технический мост между движком и витриной: ежедневный коммит\n«update track.json [дата UTC]» в tvagafonov-lab/eventum-lab-track.\n","files":[{"repo":"core","path":"src/services/gitpush.py","role":"owner","verified":false}],"variables":[]}],"flows":[{"from":"radar","to":"analyst","label":"событие-кандидат"},{"from":"analyst","to":"publisher","label":"сигнал","when":"уверенность ≥ MIN_CONFIDENCE"},{"from":"publisher","to":"followup","when":"наступил срок фоллоу-апа"},{"from":"publisher","to":"referee","when":"истекло окно выхода"},{"from":"referee","to":"ledger","label":"закрытый сигнал"},{"from":"ledger","to":"showcase","label":"track.json"}],"uses":[{"module":"radar","service":"cron","note":"периодический запуск"},{"module":"publisher","service":"telegram","note":"публикация сигнала"},{"module":"followup","service":"telegram","note":"публикация фоллоу-апа"},{"module":"followup","service":"cron","note":"проверка сроков"},{"module":"referee","service":"market","note":"цены для расчёта исхода"},{"module":"ledger","service":"cron","note":"ежедневный запуск"},{"module":"ledger","service":"git-push","note":"доставка track.json в витрину"}],"shared":[{"repo":"core","path":"src/common/signal.py","note":"Схема сигнала — единый формат данных между всеми модулями","used_by":["radar","analyst","publisher","followup","referee","ledger"],"verified":false},{"repo":"core","path":"config/settings.yaml","note":"Общий конфиг: пороги, расписания, издержки","used_by":["radar","analyst","followup","referee","ledger"],"verified":false},{"repo":"track","path":"data/track.json","note":"Интерфейсный файл: пишет учёт, читает витрина","used_by":["ledger","showcase"],"verified":true}]}</script>
+<!-- PULT:DATA:END -->
+
+<script>
+"use strict";
+/* ==================== данные и модель ==================== */
+const DATA = JSON.parse(document.getElementById("pult-data").textContent || "{}");
+const P = DATA.product || {};
+const MODULES = DATA.modules || [];
+const FLOWS = DATA.flows || [];
+const USES = DATA.uses || [];
+const SHARED = DATA.shared || [];
+const byId = Object.fromEntries(MODULES.map(m => [m.id, m]));
+const pipeline = MODULES.filter(m => m.kind !== "service");
+const services = MODULES.filter(m => m.kind === "service");
+
+const ST_LABEL = { spec: "спецификация", build: "в разработке", ready: "работает", debug: "отладка", off: "выключен" };
+const PST_LABEL = { spec: "спецификация", build: "в разработке", live: "работает", frozen: "заморожен" };
+const PST_COLOR = { spec: "var(--st-spec)", build: "var(--st-build)", live: "var(--st-ready)", frozen: "var(--st-off)" };
+const ROLE_LABEL = { owner: "владелец", part: "частично", reads: "читает" };
+const KIND_LABEL = { pipeline: "модуль конвейера", service: "служебный модуль" };
+
+const qs = new URLSearchParams(location.search);
+if (qs.get("theme") === "dark" || qs.get("theme") === "light") {
+  document.documentElement.dataset.theme = qs.get("theme");
+}
+
+/* ==================== раскладка ==================== */
+const NW = 216, NH = 92, SW = 184, SH = 80, COL_GAP = 150, ROW_GAP = 52, PAD = 70, LANE_GAP = 130;
+const pos = {}; // id -> {x, y, w, h}
+
+function computeLayout() {
+  const rank = {};
+  pipeline.forEach(m => { rank[m.id] = 0; });
+  for (let i = 0; i < pipeline.length + 1; i++) {
+    let changed = false;
+    for (const f of FLOWS) {
+      if (rank[f.from] == null || rank[f.to] == null) continue;
+      if (rank[f.to] < rank[f.from] + 1) { rank[f.to] = rank[f.from] + 1; changed = true; }
+    }
+    if (!changed) break;
+  }
+  const cols = {};
+  pipeline.forEach(m => { (cols[rank[m.id]] = cols[rank[m.id]] || []).push(m); });
+  const preds = {};
+  FLOWS.forEach(f => { (preds[f.to] = preds[f.to] || []).push(f.from); });
+
+  let maxBottom = 0;
+  Object.keys(cols).map(Number).sort((a, b) => a - b).forEach(r => {
+    const list = cols[r];
+    list.sort((a, b) => {
+      const avg = m => {
+        const p = (preds[m.id] || []).filter(id => pos[id]);
+        return p.length ? p.reduce((s, id) => s + pos[id].y, 0) / p.length : 1e9;
+      };
+      return avg(a) - avg(b) || pipeline.indexOf(a) - pipeline.indexOf(b);
+    });
+    list.forEach((m, i) => {
+      pos[m.id] = m.position
+        ? { x: m.position.x, y: m.position.y, w: NW, h: NH }
+        : { x: PAD + r * (NW + COL_GAP), y: PAD + i * (NH + ROW_GAP), w: NW, h: NH };
+      maxBottom = Math.max(maxBottom, pos[m.id].y + NH);
+    });
+  });
+
+  const laneY = maxBottom + LANE_GAP;
+  const consumers = {};
+  USES.forEach(u => { (consumers[u.service] = consumers[u.service] || []).push(u.module); });
+  const ordered = services.slice().sort((a, b) => {
+    const cx = s => {
+      const c = (consumers[s.id] || []).filter(id => pos[id]);
+      return c.length ? c.reduce((v, id) => v + pos[id].x + NW / 2, 0) / c.length : 1e9;
+    };
+    return cx(a) - cx(b);
+  });
+  let sx = PAD;
+  ordered.forEach(s => {
+    const c = (consumers[s.id] || []).filter(id => pos[id]);
+    const want = c.length ? c.reduce((v, id) => v + pos[id].x + NW / 2, 0) / c.length - SW / 2 : sx;
+    sx = Math.max(sx, want);
+    pos[s.id] = { x: sx, y: laneY, w: SW, h: SH };
+    sx += SW + 56;
+  });
+  if (SHARED.length) {
+    pos.__shared = { x: sx + 40, y: laneY, w: NW, h: SH };
+    sx += 40 + NW;
+  }
+  const width = Math.max(...Object.values(pos).map(p => p.x + p.w)) + PAD;
+  const height = laneY + SH + PAD;
+  return { width, height, laneY };
+}
+
+/* ==================== отрисовка мира ==================== */
+const world = document.getElementById("world");
+const viewport = document.getElementById("viewport");
+let L = null;
+
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+
+function edgePath(a, b, vertical) {
+  if (vertical) {
+    const dy = Math.max(34, (b.y - a.y) / 2);
+    return { d: `M ${a.x} ${a.y} C ${a.x} ${a.y + dy}, ${b.x} ${b.y - dy}, ${b.x} ${b.y}`, c1: { x: a.x, y: a.y + dy }, c2: { x: b.x, y: b.y - dy } };
+  }
+  const dx = Math.max(46, Math.abs(b.x - a.x) / 2);
+  return { d: `M ${a.x} ${a.y} C ${a.x + dx} ${a.y}, ${b.x - dx} ${b.y}, ${b.x} ${b.y}`, c1: { x: a.x + dx, y: a.y }, c2: { x: b.x - dx, y: b.y } };
+}
+function bezMid(a, p, b) {
+  return {
+    x: (a.x + 3 * p.c1.x + 3 * p.c2.x + b.x) / 8,
+    y: (a.y + 3 * p.c1.y + 3 * p.c2.y + b.y) / 8,
+  };
+}
+
+const edgeEls = []; // {path, labelEl?, from, to}
+
+function renderWorld() {
+  L = computeLayout();
+  world.style.width = L.width + "px";
+  world.style.height = L.height + "px";
+  world.innerHTML = "";
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("id", "edges");
+  svg.setAttribute("width", L.width);
+  svg.setAttribute("height", L.height);
+  svg.innerHTML =
+    '<defs>' +
+    '<marker id="mk-flow" markerWidth="9" markerHeight="8" refX="7.5" refY="4" orient="auto"><path d="M0.5 0.5 L8 4 L0.5 7.5 Z"/></marker>' +
+    '<marker id="mk-cond" class="mk-cond" markerWidth="9" markerHeight="8" refX="7.5" refY="4" orient="auto"><path d="M0.5 0.5 L8 4 L0.5 7.5 Z"/></marker>' +
+    '</defs>';
+  world.appendChild(svg);
+
+  // полоса служебных
+  const rule = el("div", "lane-rule");
+  rule.style.cssText = `left:${PAD - 26}px;right:0;top:${L.laneY - 52}px;width:${L.width - PAD}px`;
+  world.appendChild(rule);
+  const lbl = el("div", "lane-label", "Служебные модули · общие файлы");
+  lbl.style.cssText = `left:${PAD - 26}px;top:${L.laneY - 44}px`;
+  world.appendChild(lbl);
+
+  // рёбра конвейера
+  for (const f of FLOWS) {
+    const A = pos[f.from], B = pos[f.to];
+    if (!A || !B) continue;
+    const a = { x: A.x + A.w, y: A.y + A.h / 2 }, b = { x: B.x, y: B.y + B.h / 2 };
+    const p = edgePath(a, b, false);
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", p.d);
+    path.setAttribute("class", "edge" + (f.when ? " cond" : ""));
+    path.setAttribute("marker-end", f.when ? "url(#mk-cond)" : "url(#mk-flow)");
+    const tip = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    tip.textContent = `${byId[f.from].title} → ${byId[f.to].title}` + (f.when ? ` · если: ${f.when}` : "") + (f.label ? ` · ${f.label}` : "");
+    path.appendChild(tip);
+    svg.appendChild(path);
+    let labelEl = null;
+    const text = f.when || f.label;
+    if (text) {
+      const m = bezMid(a, p, b);
+      labelEl = el("div", "edge-label" + (f.when ? " cond" : ""), (f.when ? "⑂ " : "") + text);
+      labelEl.style.left = m.x + "px";
+      labelEl.style.top = m.y + "px";
+      if (f.when && f.label) labelEl.title = f.label;
+      world.appendChild(labelEl);
+    }
+    edgeEls.push({ path, labelEl, from: f.from, to: f.to });
+  }
+
+  // рёбра uses
+  for (const u of USES) {
+    const A = pos[u.module], B = pos[u.service];
+    if (!A || !B) continue;
+    const a = { x: A.x + A.w / 2, y: A.y + A.h }, b = { x: B.x + B.w / 2, y: B.y };
+    const p = edgePath(a, b, true);
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", p.d);
+    path.setAttribute("class", "edge uses");
+    const tip = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    tip.textContent = `${byId[u.module].title} использует ${byId[u.service].title}` + (u.note ? ` — ${u.note}` : "");
+    path.appendChild(tip);
+    svg.appendChild(path);
+    edgeEls.push({ path, labelEl: null, from: u.module, to: u.service });
+  }
+
+  // узлы
+  for (const m of MODULES) {
+    const pp = pos[m.id];
+    if (!pp) continue;
+    const n = el("div", "node" + (m.kind === "service" ? " service" : ""));
+    n.style.left = pp.x + "px";
+    n.style.top = pp.y + "px";
+    n.style.setProperty("--st", `var(--st-${m.status || "spec"})`);
+    n.dataset.id = m.id;
+    n.tabIndex = 0;
+    n.setAttribute("role", "button");
+    n.setAttribute("aria-label", `${m.title} — открыть свойства`);
+
+    const head = el("div", "n-head");
+    head.appendChild(el("span", "n-icon", m.icon || "▣"));
+    head.appendChild(el("span", "n-title", m.title));
+    n.appendChild(head);
+
+    const foot = el("div", "n-foot");
+    foot.appendChild(el("span", "st-chip", ST_LABEL[m.status] || m.status || ""));
+    foot.appendChild(el("span", "gap"));
+    const nPanelVars = (m.variables || []).filter(v => v.edit === "panel").length;
+    if (nPanelVars) {
+      const c = el("span", "mini-chip", "⚙ " + nPanelVars);
+      c.title = `Переменных, настраиваемых из панели: ${nPanelVars}`;
+      foot.appendChild(c);
+    }
+    n.appendChild(foot);
+
+    if (m.kind === "service") n.appendChild(el("span", "port top"));
+    else { n.appendChild(el("span", "port in")); n.appendChild(el("span", "port out")); }
+
+    if (m.verified === false) {
+      const q = el("span", "q-mark", "?");
+      q.title = "Гипотеза агента — не подтверждено владельцем";
+      n.appendChild(q);
+    }
+    n.addEventListener("click", e => { e.stopPropagation(); select(m.id); });
+    n.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(m.id); } });
+    world.appendChild(n);
+  }
+
+  // блок общих файлов
+  if (SHARED.length) {
+    const pp = pos.__shared;
+    const n = el("div", "node shared-block");
+    n.style.left = pp.x + "px";
+    n.style.top = pp.y + "px";
+    n.dataset.id = "__shared";
+    n.tabIndex = 0;
+    n.setAttribute("role", "button");
+    n.setAttribute("aria-label", "Общие файлы — открыть список");
+    const head = el("div", "n-head");
+    head.appendChild(el("span", "n-icon", "🗂"));
+    head.appendChild(el("span", "n-title", "Общие файлы"));
+    n.appendChild(head);
+    const foot = el("div", "n-foot");
+    foot.appendChild(el("span", "mini-chip", SHARED.length + " файл(а) · все модули"));
+    n.appendChild(foot);
+    n.addEventListener("click", e => { e.stopPropagation(); select("__shared"); });
+    n.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select("__shared"); } });
+    world.appendChild(n);
+  }
+}
+
+/* ==================== пан и зум ==================== */
+let view = { x: 40, y: 40, k: 1 };
+function applyView() {
+  world.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.k})`;
+  document.getElementById("zoom-pct").textContent = Math.round(view.k * 100) + "%";
+}
+function fit() {
+  const vw = viewport.clientWidth, vh = viewport.clientHeight;
+  const k = Math.min(1.15, Math.max(0.3, Math.min((vw - 48) / L.width, (vh - 48) / L.height)));
+  view = { k, x: (vw - L.width * k) / 2, y: Math.max(16, (vh - L.height * k) / 2) };
+  applyView();
+}
+function zoomAt(cx, cy, dk) {
+  const k = Math.min(2.2, Math.max(0.3, view.k * dk));
+  view.x = cx - (cx - view.x) * (k / view.k);
+  view.y = cy - (cy - view.y) * (k / view.k);
+  view.k = k;
+  applyView();
+}
+viewport.addEventListener("wheel", e => {
+  e.preventDefault();
+  const r = viewport.getBoundingClientRect();
+  zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * 0.0016));
+}, { passive: false });
+
+const pointers = new Map();
+let panStart = null, moved = false, pinch0 = null;
+viewport.addEventListener("pointerdown", e => {
+  if (e.target.closest(".node") || e.target.closest("#legend") || e.target.closest("#draftbar")) return;
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  viewport.setPointerCapture(e.pointerId);
+  if (pointers.size === 1) { panStart = { x: e.clientX - view.x, y: e.clientY - view.y }; moved = false; viewport.classList.add("panning"); }
+  if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    pinch0 = { d: Math.hypot(a.x - b.x, a.y - b.y), k: view.k };
+    panStart = null;
+  }
+});
+viewport.addEventListener("pointermove", e => {
+  if (!pointers.has(e.pointerId)) return;
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 2 && pinch0) {
+    const [a, b] = [...pointers.values()];
+    const d = Math.hypot(a.x - b.x, a.y - b.y);
+    const r = viewport.getBoundingClientRect();
+    zoomAt((a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top, (pinch0.d ? d / pinch0.d : 1) * pinch0.k / view.k);
+    return;
+  }
+  if (panStart) {
+    if (Math.abs(e.clientX - view.x - panStart.x) + Math.abs(e.clientY - view.y - panStart.y) > 3) moved = true;
+    view.x = e.clientX - panStart.x;
+    view.y = e.clientY - panStart.y;
+    applyView();
+  }
+});
+function endPointer(e) {
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) pinch0 = null;
+  if (pointers.size === 0) {
+    viewport.classList.remove("panning");
+    if (panStart && !moved) select(null);
+    panStart = null;
+  }
+}
+viewport.addEventListener("pointerup", endPointer);
+viewport.addEventListener("pointercancel", endPointer);
+document.getElementById("z-in").addEventListener("click", () => zoomAt(viewport.clientWidth / 2, viewport.clientHeight / 2, 1.2));
+document.getElementById("z-out").addEventListener("click", () => zoomAt(viewport.clientWidth / 2, viewport.clientHeight / 2, 1 / 1.2));
+document.getElementById("z-fit").addEventListener("click", fit);
+window.addEventListener("keydown", e => { if (e.key === "Escape") select(null); });
+
+/* ==================== выбор и подсветка ==================== */
+let selected = null;
+function neighborsOf(id) {
+  const set = new Set([id]);
+  for (const f of FLOWS) { if (f.from === id) set.add(f.to); if (f.to === id) set.add(f.from); }
+  for (const u of USES) { if (u.module === id) set.add(u.service); if (u.service === id) set.add(u.module); }
+  if (id !== "__shared" && SHARED.some(s => (s.used_by || []).includes(id))) set.add("__shared");
+  if (id === "__shared") SHARED.forEach(s => (s.used_by || []).forEach(m => set.add(m)));
+  return set;
+}
+function select(id) {
+  selected = id;
+  const near = id ? neighborsOf(id) : null;
+  document.querySelectorAll(".node").forEach(n => {
+    n.classList.toggle("selected", n.dataset.id === id);
+    n.classList.toggle("dim", !!id && !near.has(n.dataset.id));
+  });
+  for (const e of edgeEls) {
+    const hot = !!id && (e.from === id || e.to === id);
+    e.path.classList.toggle("hot", hot);
+    e.path.classList.toggle("dim", !!id && !hot);
+    if (e.labelEl) e.labelEl.classList.toggle("dim", !!id && !hot);
+  }
+  renderDrawer();
+}
+
+/* ==================== черновик изменений ==================== */
+const DRAFT_KEY = "pult-draft:" + (P.codename || "product");
+let draft = {};
+try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}"); } catch (e) { draft = {}; }
+function saveDraft() {
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch (e) { /* приватный режим — черновик живёт до перезагрузки */ }
+  renderDraftBar();
+}
+function draftKey(mid, key) { return mid + "." + key; }
+function renderDraftBar() {
+  const n = Object.keys(draft).length;
+  const bar = document.getElementById("draftbar");
+  bar.hidden = n === 0;
+  document.getElementById("draft-count").textContent = "Черновик изменений: " + n;
+}
+function buildTask() {
+  const lines = [`Задание для агента · Пульт · ${P.name || ""}`, "Примени изменения переменных (edit: panel):", ""];
+  let i = 0;
+  for (const [k, d] of Object.entries(draft)) {
+    const m = byId[d.module];
+    const v = (m.variables || []).find(x => x.key === d.key);
+    i++;
+    lines.push(`${i}. ${m.title} → ${v ? v.title : d.key} (${d.key}): ${d.from} → ${d.to}`);
+    if (v && v.location) lines.push(`   где: ${v.location}`);
+  }
+  lines.push("", "После правки: обнови pult/product.yaml, добавь запись в CHANGELOG.md,", "перегенерируй панель (python3 pult/tools/embed.py).");
+  return lines.join("\n");
+}
+let toastTimer = null;
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, 2400);
+}
+document.getElementById("btn-copy-task").addEventListener("click", async () => {
+  const text = buildTask();
+  try {
+    await navigator.clipboard.writeText(text);
+    toast("Задание скопировано — вставьте его агенту");
+  } catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); toast("Задание скопировано — вставьте его агенту"); }
+    catch (e2) { toast("Не удалось скопировать — выделите текст в консоли"); console.log(text); }
+    ta.remove();
+  }
+});
+document.getElementById("btn-drop-draft").addEventListener("click", () => {
+  draft = {};
+  saveDraft();
+  renderDrawer();
+  toast("Черновик сброшен");
+});
+
+/* ==================== панель свойств ==================== */
+const drawer = document.getElementById("drawer");
+const dBody = document.getElementById("drawer-body");
+let tab = "overview";
+document.getElementById("drawer-close").addEventListener("click", () => select(null));
+
+function sub(parent, tag, cls, text) { const n = el(tag, cls, text); parent.appendChild(n); return n; }
+
+function renderTabs(list) {
+  const t = document.getElementById("tabs");
+  t.innerHTML = "";
+  for (const [id, label, cnt] of list) {
+    const b = el("button", tab === id ? "on" : "", label);
+    b.setAttribute("role", "tab");
+    b.setAttribute("aria-selected", tab === id ? "true" : "false");
+    if (cnt) sub(b, "span", "cnt", String(cnt));
+    b.addEventListener("click", () => { tab = id; renderDrawer(); });
+    t.appendChild(b);
+  }
+}
+
+function fileRow(parent, f, note) {
+  const r = sub(parent, "div", "file-row");
+  const p = sub(r, "span", "file-path");
+  if (f.repo) sub(p, "span", "repo", f.repo + ":");
+  p.appendChild(document.createTextNode(f.path));
+  if (f.role) sub(r, "span", "role-tag " + f.role, ROLE_LABEL[f.role] || f.role);
+  if (f.verified === false) { const q = sub(r, "span", "q-inline", "?"); q.title = "Путь не подтверждён"; }
+  if (note) sub(r, "span", "file-note", note);
+}
+
+function varCard(parent, m, v) {
+  const editable = v.edit === "panel";
+  const card = sub(parent, "div", "var-card" + (editable ? " editable" : ""));
+  const head = sub(card, "div", "var-head");
+  sub(head, "span", "var-title", v.title || v.key);
+  sub(head, "span", "var-key", v.key);
+  if (!editable) { const l = sub(head, "span", "var-lock", "🔒 код"); l.title = "Меняется только через кодинг"; }
+  else if (v.verified === false) { const q = sub(head, "span", "var-lock q-inline", "?"); q.title = "Не подтверждено"; }
+
+  if (editable) {
+    const dk = draftKey(m.id, v.key);
+    const ctrl = sub(card, "div", "var-ctrl");
+    let input;
+    if (v.type === "bool") {
+      input = el("input");
+      input.type = "checkbox";
+      input.checked = draft[dk] ? draft[dk].to === "true" : v.value === true;
+    } else if (v.type === "enum" && Array.isArray(v.enum)) {
+      input = el("select");
+      v.enum.forEach(o => { const opt = el("option", null, String(o)); opt.value = String(o); input.appendChild(opt); });
+      input.value = draft[dk] ? draft[dk].to : String(v.value);
+    } else {
+      input = el("input");
+      input.type = v.type === "number" ? "number" : "text";
+      if (v.type === "number") input.step = "any";
+      input.value = draft[dk] ? draft[dk].to : String(v.value);
+    }
+    input.setAttribute("aria-label", v.title || v.key);
+    ctrl.appendChild(input);
+    const dot = sub(ctrl, "span", "chg");
+    dot.title = "Изменено — попадёт в задание для агента";
+    dot.hidden = !draft[dk];
+    const was = sub(card, "div", "var-was", draft[dk] ? `было: ${draft[dk].from}` : "");
+    was.hidden = !draft[dk];
+    input.addEventListener("input", () => {
+      const now = v.type === "bool" ? String(input.checked) : String(input.value);
+      const orig = String(v.value);
+      if (now === orig) delete draft[dk];
+      else draft[dk] = { module: m.id, key: v.key, from: orig, to: now };
+      dot.hidden = !draft[dk];
+      was.textContent = draft[dk] ? `было: ${orig}` : "";
+      was.hidden = !draft[dk];
+      saveDraft();
+    });
+  } else {
+    sub(card, "div", "var-value", String(v.value));
+  }
+  if (v.hint) sub(card, "div", "var-hint", v.hint);
+  if (v.location) sub(card, "div", "var-loc", "📍 " + v.location);
+}
+
+function linkRow(parent, targetId, prefix, why) {
+  const t = byId[targetId];
+  if (!t) return;
+  const b = sub(parent, "button", "link-row");
+  sub(b, "span", "arr", prefix);
+  sub(b, "span", "who", (t.icon ? t.icon + " " : "") + t.title);
+  if (why) sub(b, "span", "why", why);
+  b.addEventListener("click", () => select(targetId));
+}
+
+function renderProductOverview() {
+  document.getElementById("d-icon").textContent = "🎛";
+  document.getElementById("d-title").textContent = P.name || "Продукт";
+  const dSub = document.getElementById("d-sub");
+  dSub.innerHTML = "";
+  const st = sub(dSub, "span", "st-chip", PST_LABEL[P.status] || P.status || "");
+  st.style.setProperty("--st", PST_COLOR[P.status] || "var(--st-spec)");
+  renderTabs([["overview", "Обзор продукта"]]);
+  dBody.innerHTML = "";
+
+  if (P.tagline) sub(dBody, "p", "lead", P.tagline);
+
+  const s1 = sub(dBody, "div", "sect");
+  sub(s1, "h4", null, "Паспорт");
+  const g = sub(s1, "dl", "meta-grid");
+  const row = (k, v) => { sub(g, "dt", null, k); sub(g, "dd", null, v); };
+  if (P.owner) row("Владелец", P.owner);
+  row("Карта обновлена", (P.updated || "—") + (P.updated_by ? " · " + P.updated_by : ""));
+  const total = MODULES.length, ok = MODULES.filter(m => m.verified !== false).length;
+  row("Подтверждено", `${ok} из ${total} модулей`);
+
+  if ((P.repos || []).length) {
+    const s2 = sub(dBody, "div", "sect");
+    sub(s2, "h4", null, "Репозитории");
+    for (const r of P.repos) {
+      const fr = sub(s2, "div", "file-row");
+      const p = sub(fr, "span", "file-path");
+      if (r.url) { const a = el("a", null, r.id); a.href = r.url; a.target = "_blank"; a.rel = "noopener"; a.style.color = "var(--accent-ink)"; p.appendChild(a); }
+      else p.textContent = r.id;
+      if (r.verified === false) { const q = sub(fr, "span", "q-inline", "?"); q.title = "Не подтверждено"; }
+      if (r.note) sub(fr, "span", "file-note", r.note);
+    }
+  }
+
+  const docs = P.docs || {};
+  if (docs.product || docs.changelog) {
+    const s3 = sub(dBody, "div", "sect");
+    sub(s3, "h4", null, "Обязательное чтение агента");
+    if (docs.product) fileRow(s3, { path: docs.product }, "описание программы");
+    if (docs.changelog) fileRow(s3, { path: docs.changelog }, "журнал изменений");
+  }
+
+  const s4 = sub(dBody, "div", "sect");
+  sub(s4, "h4", null, "Как читать схему");
+  const d = sub(s4, "p", "details",
+    "Конвейер идёт слева направо; пунктирные медные стрелки — условные переходы.\n" +
+    "Нижняя полоса — служебные модули: они вне конвейера, точечные линии показывают, кто ими пользуется.\n" +
+    "Знак «?» — гипотеза агента, ждёт вашего подтверждения.\n" +
+    "Клик по блоку — его свойства; переменные с полем ввода можно менять и отправить агенту одним заданием.");
+  d.style.maxWidth = "none";
+}
+
+function renderModule(m) {
+  document.getElementById("d-icon").textContent = m.icon || "▣";
+  document.getElementById("d-title").textContent = m.title;
+  const dSub = document.getElementById("d-sub");
+  dSub.innerHTML = "";
+  sub(dSub, "span", "kind-tag", KIND_LABEL[m.kind] || m.kind);
+  const st = sub(dSub, "span", "st-chip", ST_LABEL[m.status] || m.status || "");
+  st.style.setProperty("--st", `var(--st-${m.status || "spec"})`);
+  if (m.verified === false) sub(dSub, "span", "v-badge q", "? гипотеза агента");
+  else sub(dSub, "span", "v-badge ok", "✓ подтверждено");
+
+  const files = m.files || [];
+  const sharedMine = SHARED.filter(s => (s.used_by || []).includes(m.id));
+  const vars = m.variables || [];
+  const inbound = FLOWS.filter(f => f.to === m.id);
+  const outbound = FLOWS.filter(f => f.from === m.id);
+  const usesOut = USES.filter(u => u.module === m.id);
+  const usedBy = USES.filter(u => u.service === m.id);
+  const nLinks = inbound.length + outbound.length + usesOut.length + usedBy.length;
+
+  renderTabs([
+    ["overview", "Обзор"],
+    ["files", "Файлы", files.length + sharedMine.length],
+    ["vars", "Переменные", vars.length],
+    ["links", "Связи", nLinks],
+  ]);
+  dBody.innerHTML = "";
+
+  if (tab === "overview") {
+    if (m.summary) sub(dBody, "p", "lead", m.summary);
+    if (m.details) {
+      const s = sub(dBody, "div", "sect");
+      sub(s, "h4", null, "Что делает");
+      sub(s, "p", "details", m.details.trim());
+    }
+    if (m.verified === false) {
+      const s = sub(dBody, "div", "sect");
+      sub(s, "h4", null, "Подтверждение");
+      sub(s, "p", "details", "Описание реконструировано агентом и может расходиться с реальностью. Подтвердить или поправить блок может только владелец — скажите агенту, что здесь верно, а что нет, и знак «?» будет снят.");
+    }
+  }
+
+  if (tab === "files") {
+    if (files.length) {
+      const s = sub(dBody, "div", "sect");
+      sub(s, "h4", null, "Рабочие файлы модуля");
+      files.forEach(f => fileRow(s, f));
+    }
+    if (sharedMine.length) {
+      const s = sub(dBody, "div", "sect");
+      sub(s, "h4", null, "Общие файлы, которые использует модуль");
+      sharedMine.forEach(f => fileRow(s, { repo: f.repo, path: f.path, verified: f.verified }, f.note));
+    }
+    if (!files.length && !sharedMine.length) sub(dBody, "p", "empty-note", "Файлы ещё не привязаны — модуль на стадии спецификации.");
+  }
+
+  if (tab === "vars") {
+    const editable = vars.filter(v => v.edit === "panel");
+    const coded = vars.filter(v => v.edit !== "panel");
+    if (editable.length) {
+      const s = sub(dBody, "div", "sect");
+      sub(s, "h4", null, "Настраивается из панели");
+      editable.forEach(v => varCard(s, m, v));
+    }
+    if (coded.length) {
+      const s = sub(dBody, "div", "sect");
+      sub(s, "h4", null, "Только через кодинг");
+      coded.forEach(v => varCard(s, m, v));
+    }
+    if (!vars.length) sub(dBody, "p", "empty-note", "У модуля нет объявленных переменных.");
+  }
+
+  if (tab === "links") {
+    if (inbound.length) {
+      const s = sub(dBody, "div", "sect");
+      sub(s, "h4", null, "Принимает");
+      inbound.forEach(f => linkRow(s, f.from, "←", f.when ? "если: " + f.when : f.label));
+    }
+    if (outbound.length) {
+      const s = sub(dBody, "div", "sect");
+      sub(s, "h4", null, "Передаёт");
+      outbound.forEach(f => linkRow(s, f.to, "→", f.when ? "если: " + f.when : f.label));
+    }
+    if (usesOut.length) {
+      const s = sub(dBody, "div", "sect");
+      sub(s, "h4", null, "Использует служебные");
+      usesOut.forEach(u => linkRow(s, u.service, "⇢", u.note));
+    }
+    if (usedBy.length) {
+      const s = sub(dBody, "div", "sect");
+      sub(s, "h4", null, "Кем используется");
+      usedBy.forEach(u => linkRow(s, u.module, "⇠", u.note));
+    }
+    if (!nLinks) sub(dBody, "p", "empty-note", "Связей нет.");
+  }
+}
+
+function renderSharedDrawer() {
+  document.getElementById("d-icon").textContent = "🗂";
+  document.getElementById("d-title").textContent = "Общие файлы";
+  const dSub = document.getElementById("d-sub");
+  dSub.innerHTML = "";
+  sub(dSub, "span", "kind-tag", "принадлежат нескольким модулям");
+  renderTabs([["overview", "Список"]]);
+  dBody.innerHTML = "";
+  sub(dBody, "p", "lead", "Файлы, которые не принадлежат одному модулю: схемы данных, конфиги, интерфейсные файлы между модулями.");
+  for (const f of SHARED) {
+    const s = sub(dBody, "div", "sect");
+    fileRow(s, { repo: f.repo, path: f.path, verified: f.verified }, f.note);
+    const who = sub(s, "div");
+    who.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;margin-top:6px";
+    (f.used_by || []).forEach(id => {
+      const t = byId[id];
+      if (!t) return;
+      const b = sub(who, "button", "role-tag", (t.icon ? t.icon + " " : "") + t.title);
+      b.style.cursor = "pointer";
+      b.addEventListener("click", () => select(id));
+    });
+  }
+}
+
+function renderDrawer() {
+  const narrow = window.matchMedia("(max-width: 880px)").matches;
+  if (!selected) {
+    tab = "overview";
+    if (narrow) { drawer.classList.add("closed"); return; }
+    drawer.classList.remove("closed");
+    renderProductOverview();
+    return;
+  }
+  drawer.classList.remove("closed");
+  if (selected === "__shared") { renderSharedDrawer(); return; }
+  renderModule(byId[selected]);
+}
+
+/* ==================== шапка и легенда ==================== */
+function renderChrome() {
+  document.getElementById("product-name").textContent = P.name || "Продукт";
+  const st = document.getElementById("product-status");
+  st.textContent = PST_LABEL[P.status] || P.status || "";
+  st.style.setProperty("--st", PST_COLOR[P.status] || "var(--st-spec)");
+  document.getElementById("map-meta").textContent = P.updated ? `карта от ${P.updated} · ${P.updated_by || ""}` : "";
+  const docs = P.docs || {};
+  const chips = document.getElementById("doc-chips");
+  [docs.product, docs.changelog].filter(Boolean).forEach(p => {
+    const c = el("span", "doc-chip", p);
+    c.title = "Обязательное чтение агента перед работой";
+    chips.appendChild(c);
+  });
+
+  const lg = document.getElementById("legend");
+  const r1 = sub(lg, "div", "lg-row"); sub(r1, "span", "lg-line"); sub(r1, "span", null, "поток конвейера");
+  const r2 = sub(lg, "div", "lg-row"); sub(r2, "span", "lg-line cond"); sub(r2, "span", null, "условный переход");
+  const r3 = sub(lg, "div", "lg-row"); sub(r3, "span", "lg-line uses"); sub(r3, "span", null, "использует служебный");
+  const r4 = sub(lg, "div", "lg-row lg-dots");
+  [["spec", "спека"], ["build", "разработка"], ["ready", "работает"], ["debug", "отладка"]].forEach(([k, t]) => {
+    const d = sub(r4, "span", "lg-dot");
+    const i = sub(d, "i");
+    i.style.setProperty("--st", `var(--st-${k})`);
+    i.style.background = `var(--st-${k})`;
+    sub(d, "span", null, t);
+  });
+  const r5 = sub(lg, "div", "lg-row"); sub(r5, "span", null, "? — гипотеза агента, не подтверждено");
+}
+
+/* ==================== старт ==================== */
+renderWorld();
+renderChrome();
+renderDraftBar();
+const tab0 = qs.get("tab");
+if (["overview", "files", "vars", "links"].includes(tab0)) tab = tab0;
+const sel0 = qs.get("select");
+if (sel0 && (byId[sel0] || sel0 === "__shared")) select(sel0);
+else renderDrawer();
+fit();
+window.addEventListener("resize", () => { renderDrawer(); });
+</script>
+</body>
+</html>
