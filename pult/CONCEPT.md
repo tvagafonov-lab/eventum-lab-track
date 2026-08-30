@@ -149,6 +149,44 @@ detection, conformance, maturity score; сайт из этой среды нед
 Прогресс агент обновляет при каждом sync; чип в шапке панели даёт
 состояние продукта одним взглядом.
 
+**Планировщик (pult-planner) — мозг оболочки.** Второй скилл: превращает
+замысел в спеку, файловую архитектуру, реестр ключевых имён
+(`standards.registry` — имена сущностей, контрактов и конфигов
+назначаются ДО кода) и нарезку `plan[].stages[]` — этапы размером
+в один чат-исполнитель, каждый с ролью, моделью и усилием. Собран как
+гибрид проверенных механик лучших spec-планировщиков (обзор — раздел 2а):
+контекст-бюджет этапа из GSD («план обязан влезать в свежее окно»),
+дробление по сложности из Taskmaster, самодостаточные контекст-пакеты
+из BMAD story-файлов, «имена до кода» из data-model Spec Kit,
+дельта-спеки из OpenSpec, ворота-подтверждения из spec-workflow-mcp,
+модель-по-сложности из wshobson/agents, флаг параллельности из ccpm.
+Уникальная часть — привязка к живой карте: этап получает контекст-пакет
+как срез карты (модули → файлы → переменные → стандарты → имена),
+а после разработки doctor сверяет реестр имён с кодом — молчаливое
+переименование становится дрейфом «⚠». Процедуры и матрица
+«роль → модель → усилие» — `pult/skill/planner/SKILL.md`.
+
+### 2а. Обзор spec-планировщиков (доноры механик, август 2026)
+
+Класс «спецификация и план до разработки» за 2025–2026 стал массовым:
+GitHub Spec Kit (~80 тыс. звёзд; конституция → спека → clarify → план
+с data-model/contracts → задачи → /analyze-аудит согласованности),
+GSD / GSD Core (~60 тыс. за полгода; пятифазный цикл
+Discuss→Plan→Execute→Verify→Ship, каждая фаза в свежем контексте,
+STATE.md/CONTEXT.md переживают сессии), BMAD-METHOD (~37 тыс.;
+12+ агентов-ролей, story-файлы с полным контекстом задачи,
+adversarial-ревью; тяжёлый и дорогой), OpenSpec (дельта-спеки,
+единственный решает «modification problem»), Taskmaster
+(analyze-complexity → expand, конфиг моделей по ролям), ccpm
+(parallel: true, worktrees, до 12 агентов), wshobson/agents
+(83 субагента с трёхуровневой привязкой haiku/sonnet/opus),
+spec-workflow-mcp (дашборд + approvals), Agent OS (слой standards),
+Kiro (EARS-нотация требований). Общая слабость всего класса: артефакты
+планирования — папка markdown, оторванная от структуры продукта,
+умирающая после релиза; никто не планирует модели/усилие per-этап
+конкретного плана и никто не сверяет дрейф имён. Эти три дыры
+закрывает pult-planner поверх карты.
+
 **Панель** (`panel.html`) — один самодостаточный файл, без сборки
 и без сервера: открывается локально двойным кликом, с GitHub Pages,
 публикуется артефактом Claude. Слева канва в языке n8n: конвейер слева
@@ -242,7 +280,10 @@ track record (потому и почти весь в «?»). Прицел дал
 ## 7. Дорожная карта
 
 1. **v1 (этот прототип):** формат карты, панель, скилл-контракт, черновик
-   изменений переменных.
+   изменений переменных; двухслойная модель (факт/замысел, дрейф, план);
+   скилл-планировщик pult-planner (спека → архитектура → этапы
+   с ролями/моделями → контекст-пакеты → аудит) + standards с реестром
+   имён в карте и на панели.
 2. **v1.1:** doctor как строгая процедура скилла; сверка «карта ↔ реальные
    импорты» (по языкам: сначала Python/JS через grep импортов). Если
    в проекте стоит Understand-Anything или codegraph — doctor берёт
@@ -285,6 +326,14 @@ track record (потому и почти весь в «?»). Прицел дал
 - architecture-diagram-skill — https://github.com/konraddzbik/architecture-diagram-skill
 - Living Architecture (architecture.md) — https://ceaksan.com/en/living-architecture-ai-architectural-documentation
 - React Flow и альтернативы — https://npmtrends.com/drawflow-vs-litegraph.js-vs-react-flow-vs-rete
-- GitHub Spec Kit — https://github.blog/ai-and-ml/generative-ai/spec-driven-development-with-ai-get-started-with-a-new-open-source-toolkit/
-- OpenSpec — https://vibecodinghub.org/tools/openspec
+- GitHub Spec Kit — https://github.com/github/spec-kit
+- GSD Core (Open GSD) — https://github.com/open-gsd/gsd-core
+- BMAD-METHOD — https://github.com/bmad-code-org/BMAD-METHOD
+- OpenSpec — https://github.com/Fission-AI/OpenSpec
+- Taskmaster — https://github.com/eyaltoledano/claude-task-master
+- ccpm — https://github.com/automazeio/ccpm
+- wshobson/agents — https://github.com/wshobson/agents
+- spec-workflow-mcp — https://github.com/Pimzino/spec-workflow-mcp
+- Agent OS — https://github.com/buildermethods/agent-os
+- spec-compare (18 SDD-инструментов) — https://github.com/cameronsjo/spec-compare
 - Обзор SDD-подходов 2026 — https://www.thebcms.com/blog/spec-driven-development/

@@ -423,6 +423,66 @@ plan:
     title: "Дрейф-контроль doctor: регулярная сверка карты с кодом движка"
     state: todo
     modules: []
+    stages:
+      - id: p6.1
+        title: "Инвентаризация: реальные файлы, переменные и имена движка"
+        state: todo
+        role: researcher
+        model: haiku
+        effort: low
+        gives: "Список файлов и имён движка для сверки с картой и реестром"
+      - id: p6.2
+        title: "Скрипт сверки: карта и реестр против кода"
+        state: todo
+        role: executor
+        model: sonnet
+        effort: high
+        needs: [p6.1]
+        gives: "pult/tools/doctor.py — отчёт о дрейфе файлов, переменных и имён"
+      - id: p6.3
+        title: "Прогон на витрине и разметка дрейфа в карте"
+        state: todo
+        role: verifier
+        model: sonnet
+        effort: medium
+        needs: [p6.2]
+        gives: "Поля drift проставлены по отчёту; ложные срабатывания разобраны"
+
+# ------------------------------------------------------------
+# Стандарты продукта — пишет планировщик (pult-planner),
+# сверяет audit/doctor. Реестр — имена до кода.
+# ------------------------------------------------------------
+standards:
+  file_size:
+    soft_max_lines: 300
+    hard_max_lines: 500
+    exceptions: ["data/", "*.json"]
+  naming:
+    - { scope: "python (движок)", rule: "snake_case; классы CapWords", verified: false }
+    - { scope: "ключи конфига", rule: "SCREAMING_SNAKE", verified: false }
+    - { scope: "модули карты", rule: "kebab-case id", verified: true }
+    - { scope: "поля track.json", rule: "snake_case", verified: true }
+  registry:
+    - name: "Signal"
+      kind: entity
+      location: "core:src/common/signal.py"
+      note: "единая схема сигнала между всеми модулями"
+      verified: false
+    - name: "track.json"
+      kind: contract
+      location: "track:data/track.json"
+      note: "интерфейс учёт → витрина; поля aggregates, all_signals, equity_curve, updated_at"
+      verified: true
+    - name: "settings.yaml"
+      kind: config
+      location: "core:config/settings.yaml"
+      note: "общий конфиг: пороги, расписания, издержки"
+      verified: false
+    - name: "@eventum_lab"
+      kind: endpoint
+      location: "Telegram"
+      note: "публичный канал публикации сигналов"
+      verified: true
 
 # ------------------------------------------------------------
 # Общие файлы — принадлежат не одному модулю, а всем.
